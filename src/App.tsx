@@ -32,15 +32,20 @@ import '@ionic/react/css/palettes/dark.system.css';
 
 /* Theme variables */
 import './theme/variables.css';
+import Recordings from './pages/Recordings';
 
 setupIonicReact();
 
 const App: React.FC = () => (
+  
   <IonApp>
     <IonReactRouter>
       <IonRouterOutlet>
         <Route exact path="/home">
           <Home />
+        </Route>
+        <Route exact path="/recordings">
+          <Recordings />
         </Route>
         <Route exact path="/">
           <Redirect to="/home" />

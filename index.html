@@ -26,5 +26,11 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      window._androidPermissionsResult = function(obj) {
+        // simple event so our Home.tsx can pick it up by polling or listening
+        window.dispatchEvent(new CustomEvent('androidPermissionsResult', { detail: obj }));
+      }
+    </script>
   </body>
 </html>
