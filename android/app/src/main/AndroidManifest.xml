@@ -4,6 +4,7 @@
 
     <!-- Permissions must be direct children of manifest -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
     <uses-permission android:name="android.permission.READ_CALL_LOG"/>
@@ -18,6 +19,9 @@
 
     <!-- Required so Android considers your app as a dialer candidate -->
     <uses-feature android:name="android.software.connectionservice" android:required="true" />
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -50,10 +54,10 @@
         </service>
 
         <!-- Optional CallRecorder service -->
-        <service
-            android:name="io.ionic.starter.CallRecorderService"
-            android:foregroundServiceType="microphone|phoneCall"
-            android:exported="false" />
+<!--        <service-->
+<!--            android:name="io.ionic.starter.CallRecorderService"-->
+<!--            android:foregroundServiceType="microphone|phoneCall"-->
+<!--            android:exported="false" />-->
 
         <!-- Optional CallScreeningService -->
         <service
@@ -93,6 +97,15 @@
                 <action android:name="android.intent.action.DIAL" />
                 <action android:name="android.intent.action.CALL" />
                 <action android:name="android.intent.action.CALL_PRIVILEGED" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="tel" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.DIAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.DIAL" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="tel" />
             </intent-filter>

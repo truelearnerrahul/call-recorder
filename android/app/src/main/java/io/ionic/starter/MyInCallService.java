@@ -27,7 +27,9 @@ public class MyInCallService extends InCallService {
         createNotificationChannel();
 
         // Full screen Intent to open your Ionic incoming call Activity
-        Intent fullScreen = new Intent(this, MainActivity.class);
+        InCallActivity.setCall(call);
+
+        Intent fullScreen = new Intent(this, InCallActivity.class);
         fullScreen.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         fullScreen.putExtra("incoming_call", true);
         PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(this, 0, fullScreen,
@@ -54,6 +56,7 @@ public class MyInCallService extends InCallService {
         super.onCallRemoved(call);
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         nm.cancel(1001);
+        InCallActivity.setCall(null);
     }
 
     private void createNotificationChannel() {
