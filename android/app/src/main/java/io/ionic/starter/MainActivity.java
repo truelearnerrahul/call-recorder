@@ -21,6 +21,9 @@ import androidx.core.content.ContextCompat;
 
 import com.getcapacitor.BridgeActivity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends BridgeActivity {
     private static final int REQUEST_PERM = 1001;
     private static final int REQUEST_ROLE = 1002;
@@ -88,40 +91,49 @@ public class MainActivity extends BridgeActivity {
             webView = wv;
         }
 
+
+
         @JavascriptInterface
         public void requestPermissions() {
-            final String[] perms;
-                perms = new String[]{
-                        Manifest.permission.RECORD_AUDIO,
-                        Manifest.permission.READ_PHONE_STATE,
-                        Manifest.permission.READ_CALL_LOG,
-                        Manifest.permission.ANSWER_PHONE_CALLS,
-                        Manifest.permission.CALL_PHONE,
-                        Manifest.permission.MANAGE_OWN_CALLS,
-                        Manifest.permission.WRITE_CALL_LOG,
-                };
+            List<String> perms = new ArrayList<>();
+
+            // Always include these
+            perms.add(Manifest.permission.RECORD_AUDIO);
+            perms.add(Manifest.permission.READ_PHONE_STATE);
+            perms.add(Manifest.permission.READ_CALL_LOG);
+            perms.add(Manifest.permission.CALL_PHONE);
+            perms.add(Manifest.permission.WRITE_CALL_LOG);
+            perms.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            perms.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+
+            // API 26+ permissions
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                perms.add(Manifest.permission.ANSWER_PHONE_CALLS);
+                perms.add(Manifest.permission.MANAGE_OWN_CALLS);
+            }
+
+            final String[] runtimePerms = perms.toArray(new String[0]);
 
             activity.runOnUiThread(() -> {
                 boolean allGranted = true;
-                for (String p : perms) {
+                for (String p : runtimePerms) {
                     if (ContextCompat.checkSelfPermission(activity, p) != PackageManager.PERMISSION_GRANTED) {
                         allGranted = false;
                         break;
                     }
                 }
+
                 if (!allGranted) {
-                    ActivityCompat.requestPermissions(activity, perms, REQUEST_PERM);
+                    ActivityCompat.requestPermissions(activity, runtimePerms, REQUEST_PERM);
                 } else {
-                    // ✅ notify JS
-                    webView.post(() ->
-                            webView.evaluateJavascript(
-                                    "window._androidPermissionsResult && window._androidPermissionsResult({granted:true})",
-                                   null
-                            )
-                    );
+                    webView.post(() -> webView.evaluateJavascript(
+                            "window._androidPermissionsResult && window._androidPermissionsResult({granted:true})",
+                            null
+                    ));
                 }
             });
         }
+
 
         @JavascriptInterface
         public void requestDefaultDialer() {

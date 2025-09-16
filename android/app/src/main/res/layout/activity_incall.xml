@@ -1,61 +1,98 @@
-<?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="#101010"
+    android:padding="24dp"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#202020"
-    android:padding="24dp">
+    android:layout_height="match_parent">
 
-    <!-- Caller info -->
-    <TextView
-        android:id="@+id/txtCaller"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Incoming Call"
-        android:textSize="24sp"
-        android:textColor="#FFFFFF"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="80dp" />
-
-    <!-- Phone number -->
     <TextView
         android:id="@+id/txtNumber"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="+91 9876543210"
+        android:text="Incoming Call"
+        android:textColor="#FFFFFF"
         android:textSize="20sp"
-        android:textColor="#DDDDDD"
-        android:layout_below="@id/txtCaller"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp" />
+        android:gravity="center"
+        android:layout_marginBottom="40dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
 
-    <!-- Answer Button -->
-    <Button
-        android:id="@+id/btnAnswer"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:backgroundTint="#4CAF50"
-        android:text="Answer"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="60dp"
-        android:layout_marginStart="40dp"
-        android:drawableTop="@android:drawable/ic_menu_call" />
+    <!-- Answer / Reject Row -->
+    <LinearLayout
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-    <!-- Reject Button -->
-    <Button
-        android:id="@+id/btnReject"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:backgroundTint="#F44336"
-        android:text="Reject"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginBottom="60dp"
-        android:layout_marginEnd="40dp"
-        android:drawableTop="@android:drawable/ic_menu_close_clear_cancel" />
+        <Button
+            android:id="@+id/btnAnswer"
+            android:text="Answer"
+            android:backgroundTint="#4CAF50"
+            android:textColor="#FFFFFF"
+            android:layout_margin="16dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
 
-</RelativeLayout>
+        <Button
+            android:id="@+id/btnReject"
+            android:text="Reject"
+            android:backgroundTint="#F44336"
+            android:textColor="#FFFFFF"
+            android:layout_margin="16dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <!-- Call Controls (hidden until active) -->
+    <LinearLayout
+        android:id="@+id/controlsLayout"
+        android:visibility="gone"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="40dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageButton
+            android:id="@+id/btnMute"
+            android:src="@android:drawable/ic_lock_silent_mode"
+            android:backgroundTint="#333333"
+            android:tint="#FFFFFF"
+            android:layout_margin="16dp"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@android:drawable/btn_default"/>
+
+        <ImageButton
+            android:id="@+id/btnSpeaker"
+            android:src="@android:drawable/ic_lock_silent_mode_off"
+            android:backgroundTint="#333333"
+            android:tint="#FFFFFF"
+            android:layout_margin="16dp"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@android:drawable/btn_default"/>
+
+        <ImageButton
+            android:id="@+id/btnDialPad"
+            android:src="@android:drawable/ic_menu_call"
+            android:backgroundTint="#333333"
+            android:tint="#FFFFFF"
+            android:layout_margin="16dp"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@android:drawable/btn_default"/>
+
+        <ImageButton
+            android:id="@+id/btnRecord"
+            android:src="@android:drawable/ic_btn_speak_now"
+            android:backgroundTint="#333333"
+            android:tint="#FFFFFF"
+            android:layout_margin="16dp"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@android:drawable/btn_default"/>
+    </LinearLayout>
+
+</LinearLayout>
+
