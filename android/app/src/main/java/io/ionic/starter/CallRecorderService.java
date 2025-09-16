@@ -4,13 +4,16 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -26,13 +29,25 @@ public class CallRecorderService extends Service {
     private File outFile;
     private boolean isRecording = false;
 
+    // Audio sources to try in order of preference
+    private static final int[] AUDIO_SOURCES = {
+//            MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+            MediaRecorder.AudioSource.MIC,
+            MediaRecorder.AudioSource.VOICE_RECOGNITION,
+            MediaRecorder.AudioSource.CAMCORDER
+    };
+
+    private static final String[] SOURCE_NAMES = {
+//            "VOICE_COMMUNICATION",
+            "MIC", "VOICE_RECOGNITION",
+            "CAMCORDER"
+    };
+
     @Override
     public void onCreate() {
         super.onCreate();
         createNotificationChannel();
     }
-
-
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -51,8 +66,13 @@ public class CallRecorderService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && intent.getAction() != null) {
             if (intent.getAction().equals("START_RECORDING")) {
-                // Start recording in a separate thread to avoid ANR
-                new Thread(this::startRecording).start();
+                // Check permissions before starting
+                if (checkPermissions()) {
+                    new Thread(this::startRecording).start();
+                } else {
+                    Log.e(TAG, "Missing required permissions");
+                    stopSelf();
+                }
             } else if (intent.getAction().equals("STOP_RECORDING")) {
                 stopRecordingAndService();
             }
@@ -60,45 +80,50 @@ public class CallRecorderService extends Service {
         return START_STICKY;
     }
 
+    private boolean checkPermissions() {
+        // Check if we have record audio permission
+        if (ContextCompat.checkSelfPermission(this,
+                android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            return false;
+        }
+
+        // Check for storage permission if needed
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            if (ContextCompat.checkSelfPermission(this,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private void startRecording() {
         try {
-            // Use a more accessible directory
+            // Create directory if it doesn't exist
             File dir = new File(getExternalFilesDir(Environment.DIRECTORY_MUSIC), "CallRecords");
-
             if (!dir.exists() && !dir.mkdirs()) {
                 Log.e(TAG, "Failed to create directory: " + dir.getAbsolutePath());
                 stopSelf();
                 return;
             }
 
-            String ts = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-            String filename = "call_" + ts + ".mp4";
+            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+            String filename = "call_" + timestamp + ".amr"; // Using AMR format for better compatibility with voice
             outFile = new File(dir, filename);
 
             recorder = new MediaRecorder();
 
-            // Try different audio sources systematically
+            // Try different audio sources
             boolean audioSourceSet = false;
-            int[] audioSources = {
-//                    MediaRecorder.AudioSource.VOICE_CALL,
-                    MediaRecorder.AudioSource.VOICE_COMMUNICATION,
-                    MediaRecorder.AudioSource.MIC,
-                    MediaRecorder.AudioSource.VOICE_RECOGNITION,
-                    MediaRecorder.AudioSource.CAMCORDER
-            };
-
-            String[] sourceNames = {
-                    "VOICE_COMMUNICATION", "MIC", "VOICE_RECOGNITION", "CAMCORDER"
-            };
-
-            for (int i = 0; i < audioSources.length; i++) {
+            for (int i = 0; i < AUDIO_SOURCES.length; i++) {
                 try {
-                    recorder.setAudioSource(audioSources[i]);
+                    recorder.setAudioSource(AUDIO_SOURCES[i]);
                     audioSourceSet = true;
-                    Log.i(TAG, "Using audio source: " + sourceNames[i]);
+                    Log.i(TAG, "Using audio source: " + SOURCE_NAMES[i]);
                     break;
                 } catch (Exception e) {
-                    Log.w(TAG, "Audio source " + sourceNames[i] + " failed: " + e.getMessage());
+                    Log.w(TAG, "Audio source " + SOURCE_NAMES[i] + " failed: " + e.getMessage());
                 }
             }
 
@@ -122,27 +147,25 @@ public class CallRecorderService extends Service {
                 return;
             }
 
-            // Start immediately after prepare
+            // Start recording
             try {
                 recorder.start();
                 isRecording = true;
 
-                // Update the notification as a foreground service
+                // Create and show notification
                 Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                         .setContentTitle("Call Recording Active")
-                        .setContentText("Recording in progress...")
+                        .setContentText("Recording: " + filename)
                         .setSmallIcon(android.R.drawable.ic_btn_speak_now)
                         .setOngoing(true)
                         .setPriority(NotificationCompat.PRIORITY_LOW)
                         .build();
 
-                // Use the correct foreground service type for microphone access
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     try {
                         int typeMicrophone = Service.class.getField("FOREGROUND_SERVICE_TYPE_MICROPHONE").getInt(null);
                         startForeground(NOTIFICATION_ID, notification, typeMicrophone);
                     } catch (Exception e) {
-                        // Fallback if FOREGROUND_SERVICE_TYPE_MICROPHONE is not available
                         startForeground(NOTIFICATION_ID, notification);
                     }
                 } else {
@@ -169,15 +192,28 @@ public class CallRecorderService extends Service {
     private void stopRecording() {
         if (recorder != null && isRecording) {
             try {
+                // Properly stop and reset the recorder
                 recorder.stop();
+                recorder.reset();
                 Log.i(TAG, "Recording stopped. File: " + outFile.getAbsolutePath());
-            } catch (IllegalStateException e) {
-                Log.w(TAG, "Recorder was not in a valid state to stop: " + e.getMessage());
+
+                // Verify file was created and has content
+                if (outFile.exists()) {
+                    long fileSize = outFile.length();
+                    Log.i(TAG, "Recording file size: " + fileSize + " bytes");
+                    if (fileSize == 0) {
+                        Log.w(TAG, "Recording file is empty - no audio was captured");
+                    }
+                } else {
+                    Log.w(TAG, "Recording file was not created");
+                }
+            } catch (RuntimeException e) {
+                Log.e(TAG, "Error stopping recorder: " + e.getMessage(), e);
+            } finally {
+                recorder.release();
+                recorder = null;
+                isRecording = false;
             }
-            recorder.reset();
-            recorder.release();
-            recorder = null;
-            isRecording = false;
         }
     }
 

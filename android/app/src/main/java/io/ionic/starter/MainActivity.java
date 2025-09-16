@@ -1,4 +1,4 @@
-package io.ionic.starter; // your package
+package io.ionic.starter;
 
 import android.Manifest;
 import android.app.Activity;

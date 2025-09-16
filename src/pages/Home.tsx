@@ -1,11 +1,38 @@
 import React, { useEffect, useState } from 'react';
-import { IonButton, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonText, IonPage, IonContent } from '@ionic/react';
+import {
+  IonButton,
+  IonCard,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardContent,
+  IonText,
+  IonPage,
+  IonContent,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+} from '@ionic/react';
 import { Capacitor } from '@capacitor/core';
+import { PhoneCall } from 'lucide-react';
 import Dialer from '../utils/dialer';
 
 const Home: React.FC = () => {
   const [permissionsGranted, setPermissionsGranted] = useState(false);
   const [status, setStatus] = useState('idle');
+  const [isDefaultDialer, setIsDefaultDialer] = useState(false);
+
+  useEffect(() => {
+    async function checkDefaultDialer() {
+      try {
+        // @ts-ignore
+        const res = await (window as any).AndroidBridge?.isDefaultDialer();
+        setIsDefaultDialer(!!res?.granted);
+      } catch (e) {
+        console.warn('Error checking default dialer', e);
+      }
+    }
+    checkDefaultDialer();
+  }, []);
 
   React.useEffect(() => {
     function onRes(e: any) {
@@ -18,45 +45,41 @@ const Home: React.FC = () => {
       }
     }
     window.addEventListener('androidPermissionsResult', onRes);
-    return () => { window.removeEventListener('androidPermissionsResult', onRes); };
+    return () => {
+      window.removeEventListener('androidPermissionsResult', onRes);
+    };
   }, []);
 
-  
   useEffect(() => {
-    // ask for permissions on app load
     if ((window as any).AndroidBridge) {
       (window as any).AndroidBridge.requestPermissions();
     }
   }, []);
 
   (window as any)._androidDialerResult = (res: { granted: boolean }) => {
-    console.log("Default dialer accepted?", res.granted);
-    alert("Default dialer accepted?" + res.granted);
+    console.log('Default dialer accepted?', res.granted);
+    if (res.granted) setIsDefaultDialer(true);
   };
-  
-  // to handle callback
-  ;(window as any)._androidPermissionsResult = (res: { granted: boolean }) => {
-    // alert("Permissions granted?" + res.granted);
+
+  (window as any)._androidPermissionsResult = (res: { granted: boolean }) => {
     if (res?.granted) {
       setPermissionsGranted(true);
       setStatus('permissions granted');
     } else {
       setStatus('permissions denied');
     }
-    console.log("Permissions granted?", res.granted);
+    console.log('Permissions granted?', res.granted);
   };
-  
-  const requestPermissions = async () => {
 
+  const requestPermissions = async () => {
     setStatus('requesting permissions...');
     try {
       if (Capacitor.getPlatform() !== 'android') {
         setStatus('Only Android supported for call recording.');
         return;
       }
-
       // @ts-ignore
-      await (window as any).AndroidBridge?.requestPermissions();      
+      await (window as any).AndroidBridge?.requestPermissions();
     } catch (e) {
       console.error(e);
       setStatus('error requesting permissions');
@@ -68,29 +91,25 @@ const Home: React.FC = () => {
     try {
       // @ts-ignore
       await (window as any).AndroidBridge?.requestDefaultDialer();
-      setStatus('requested default dialer; user will see a system prompt');      
-      
+      setStatus('requested default dialer; user will see a system prompt');
     } catch (e) {
       setStatus('error requesting default dialer');
     }
   };
 
   const startDemoDial = () => {
-    // open dialer with a number (demonstrate being dialer)
     window.open('tel:+1234567890');
   };
 
   useEffect(() => {
-    const incoming = Dialer.addListener("callIncoming", (info) => {
-      console.log("incoming:", info);
+    const incoming = Dialer.addListener('callIncoming', (info) => {
+      console.log('incoming:', info);
     });
-
-    const answered = Dialer.addListener("callAnswered", (info) => {
-      console.log("answered:", info);
+    const answered = Dialer.addListener('callAnswered', (info) => {
+      console.log('answered:', info);
     });
-
-    const ended = Dialer.addListener("callEnded", (info) => {
-      console.log("ended:", info);
+    const ended = Dialer.addListener('callEnded', (info) => {
+      console.log('ended:', info);
     });
 
     return () => {
@@ -99,28 +118,66 @@ const Home: React.FC = () => {
       ended.then((h) => h.remove());
     };
   }, []);
+
   return (
     <IonPage>
       <IonContent>
-        <IonCard style={{ margin: 16 }}>
-          <IonCardHeader>
-            <IonCardTitle>Call Recorder MVP (Android)</IonCardTitle>
-          </IonCardHeader>
-          <IonCardContent>
-            <IonText>
-              This app will attempt to detect calls and start a native recorder. Behavior varies by device.
-            </IonText>
-            <div style={{ marginTop: 12 }}>
-              <IonButton onClick={requestPermissions}>Request Permissions</IonButton>
-              <IonButton onClick={requestDefaultDialer} style={{ marginLeft: 8 }}>Request Default Dialer</IonButton>
-              <IonButton onClick={startDemoDial} style={{ marginLeft: 8 }}>Open Dialer (demo)</IonButton>
-            </div>
+        <IonHeader>
+          <IonToolbar>
+          </IonToolbar>
+        </IonHeader>
+        
+        <IonCard className="w-full max-w-lg shadow-xl rounded-2xl bg-white dark:bg-gray-800">
+            <IonCardHeader>
+              <IonCardTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                Call Recorder MVP
+              </IonCardTitle>
+            </IonCardHeader>
+            <IonCardContent>
+              <IonText className="text-gray-600 dark:text-gray-300">
+                This app will attempt to detect calls and start a native
+                recorder. Behavior varies by device.
+              </IonText>
 
-            <div style={{ marginTop: 12 }}>
-              <strong>Status:</strong> {status}
-            </div>
-          </IonCardContent>
-        </IonCard>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <IonButton
+                  shape="round"
+                  className="flex-1"
+                  onClick={requestPermissions}
+                >
+                  Request Permissions
+                </IonButton>
+                <IonButton
+                  shape="round"
+                  className="flex-1"
+                  onClick={startDemoDial}
+                  color="secondary"
+                >
+                  Open Demo Dial
+                </IonButton>
+                <IonButton
+                shape="round"
+                className="flex-1"
+                color="secondary"
+                onClick={requestDefaultDialer}
+              >
+                Set as Default
+              </IonButton>
+                <IonButton
+                shape="round"
+                className="flex-1"
+                color="secondary"
+                routerLink='/recordings'
+              >
+               Call Recordings
+              </IonButton>
+              </div>
+
+              <div className="mt-6 text-sm text-gray-700 dark:text-gray-300">
+                <strong>Status:</strong> {status}
+              </div>
+            </IonCardContent>
+          </IonCard>
       </IonContent>
     </IonPage>
   );
