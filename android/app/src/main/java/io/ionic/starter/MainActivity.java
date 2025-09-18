@@ -47,6 +47,7 @@ public class MainActivity extends BridgeActivity {
         webView.addJavascriptInterface(new AndroidBridge(this, webView), "AndroidBridge");
         registerPhoneAccount();
         registerPlugin(DialerPlugin.class);
+        registerPlugin(CallHistoryPlugin.class);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)

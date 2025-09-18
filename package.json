@@ -11,8 +11,9 @@
     "test.unit": "vitest",
     "lint": "eslint",
     "build.android": "ionic cap build android",
+    "sync.android": "ionic cap sync android",
     "run.android": "ionic cap run android",
-    "live.android": "ionic cap run android -l --external"
+    "live.android": "ionic cap run android"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.3",
