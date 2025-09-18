@@ -1,5 +1,5 @@
 import { Redirect, Route } from 'react-router-dom';
-import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
+import { IonApp, IonContent, IonFab, IonFabButton, IonFooter, IonHeader, IonIcon, IonLabel, IonRouterOutlet, IonTab, IonTabBar, IonTabButton, IonTabs, IonTitle, IonToolbar, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import Home from './pages/Home';
 
@@ -18,6 +18,7 @@ import '@ionic/react/css/text-alignment.css';
 import '@ionic/react/css/text-transformation.css';
 import '@ionic/react/css/flex-utils.css';
 import '@ionic/react/css/display.css';
+import './global.css'
 
 /**
  * Ionic Dark Mode
@@ -33,14 +34,17 @@ import '@ionic/react/css/palettes/dark.system.css';
 /* Theme variables */
 import './theme/variables.css';
 import Recordings from './pages/Recordings';
+import { call, home, keypad, library, mic, people, search, videocamOutline } from 'ionicons/icons';
+import { Contacts } from './pages/Contacts';
+import { Recents } from './pages/Recents';
 
 setupIonicReact();
 
 const App: React.FC = () => (
-  
+
   <IonApp>
     <IonReactRouter>
-      <IonRouterOutlet>
+      {/* <IonRouterOutlet>
         <Route exact path="/home">
           <Home />
         </Route>
@@ -50,8 +54,48 @@ const App: React.FC = () => (
         <Route exact path="/">
           <Redirect to="/home" />
         </Route>
+        <Route path="/home" render={() => <Home />} exact={true} />
+        <Route path="/recents" render={() => <Recents />} exact={true} />
+        <Route path="/contacts" render={() => <Contacts />} exact={true} />
+        <Route path="/recordings" render={() => <Recordings />} exact={true} /> 
+      </IonRouterOutlet> */}
+    <IonTabs>
+      <IonRouterOutlet>
+        <Redirect exact path="/" to="/home" />
+
+        <Route path="/home" render={() => <Home />} exact={true} />
+        <Route path="/recents" render={() => <Recents />} exact={true} />
+        <Route path="/contacts" render={() => <Contacts />} exact={true} />
+        <Route path="/recordings" render={() => <Recordings />} exact={true} />
       </IonRouterOutlet>
+
+
+      <IonTabBar slot="bottom">
+        <IonTabButton tab="home" href='/home'>
+          <IonIcon icon={home} />
+          Home
+        </IonTabButton>
+        <IonTabButton tab="recents" href='/recents'>
+          <IonIcon icon={call} />
+          Recents
+        </IonTabButton>
+        <IonTabButton tab="contacts" href='/contacts'>
+          <IonIcon icon={people} />
+          Contacts
+        </IonTabButton>
+        <IonTabButton tab="recordings" href='/recordings'>
+          <IonIcon icon={mic} />
+          Call Recordings
+        </IonTabButton>
+      </IonTabBar>
+    </IonTabs>
     </IonReactRouter>
+    <IonFab slot='fixed' horizontal='end' vertical='bottom'>
+      <IonFabButton color="primary" routerLink="/dialpad">
+        <IonIcon icon={keypad} />
+      </IonFabButton>
+    </IonFab>
+
   </IonApp>
 );
 

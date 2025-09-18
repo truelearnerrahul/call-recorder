@@ -12,7 +12,11 @@ import {
   IonRange,
   IonButtons,
   IonIcon,
-  IonText
+  IonText,
+  useIonViewDidEnter,
+  IonRefresher,
+  IonRefresherContent,
+  RefresherCustomEvent
 } from '@ionic/react';
 import { play as playIcon, pause as pauseIcon } from 'ionicons/icons';
 import { Filesystem, Directory } from '@capacitor/filesystem';
@@ -38,38 +42,49 @@ const RecordingsPage: React.FC = () => {
   const [currentTime, setCurrentTime] = useState<number>(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const handleRefresh = (event: RefresherCustomEvent) => {
+    setTimeout(() => {
+      loadRecordings()
+      // Any calls to load data go here
+      event.detail.complete();
+    }, 2000);
+  }
+  const loadRecordings = async () => {
+    try {
+      const result = await Filesystem.readdir({
+        path: 'Music/CallRecords',
+        directory: Directory.External
+      });
+      const mp4Files = result.files
+        .map(f => ('name' in f ? f.name : (f as any))) // compat for different result shapes
+        .filter((name: string) => name.endsWith('.mp4') || name.endsWith('.m4a') || name.endsWith('.aac') || name.endsWith('.mp3') || name.endsWith('.webm') || name.endsWith('.amr') || name.endsWith('.3gp') || name.endsWith('.wav'));
+
+      const withUri: Recording[] = [];
+      for (const name of mp4Files) {
+        try {
+          const fileUri = await Filesystem.getUri({
+            path: `Music/CallRecords/${name}`,
+            directory: Directory.External
+          });
+          withUri.push({ name, uri: fileUri.uri });
+        } catch {
+          // Fallback: keep only name, will base64 read on play
+          withUri.push({ name });
+        }
+      }
+      setRecordings(withUri);
+    } catch (err) {
+      console.error('Error reading recordings', err);
+    }
+  };
   // Load recordings
   useEffect(() => {
-    const loadRecordings = async () => {
-      try {
-        const result = await Filesystem.readdir({
-          path: 'Music/CallRecords',
-          directory: Directory.External
-        });
-        const mp4Files = result.files
-          .map(f => ('name' in f ? f.name : (f as any))) // compat for different result shapes
-          .filter((name: string) => name.endsWith('.mp4') || name.endsWith('.m4a') || name.endsWith('.aac') || name.endsWith('.mp3') || name.endsWith('.webm') || name.endsWith('.amr'));
-
-        const withUri: Recording[] = [];
-        for (const name of mp4Files) {
-          try {
-            const fileUri = await Filesystem.getUri({
-              path: `Music/CallRecords/${name}`,
-              directory: Directory.External
-            });
-            withUri.push({ name, uri: fileUri.uri });
-          } catch {
-            // Fallback: keep only name, will base64 read on play
-            withUri.push({ name });
-          }
-        }
-        setRecordings(withUri);
-      } catch (err) {
-        console.error('Error reading recordings', err);
-      }
-    };
     loadRecordings();
   }, []);
+
+  useIonViewDidEnter(() => {
+    loadRecordings();
+  });
 
   // Cleanup on unmount
   useEffect(() => {
@@ -117,6 +132,8 @@ const RecordingsPage: React.FC = () => {
       ext === 'm4a' ? 'audio/mp4' :
       ext === 'aac' ? 'audio/aac' :
       ext === 'wav' ? 'audio/wav' :
+      ext === 'amr' ? 'audio/amr' :
+      ext === '3gp' ? 'audio/3gpp' :
       'audio/mp4';
   
     return `data:${mime};base64,${file.data}`;
@@ -151,32 +168,52 @@ const RecordingsPage: React.FC = () => {
       audioRef.current = null;
     }
   
-    // 🔑 Always resolve to base64
-    let src: string;
-    try {
-      src = await resolveAudioSrc(rec);
-    } catch (err) {
-      console.error('Failed resolving audio source', err);
-      return;
+    let src: string | undefined = undefined;
+    // Prefer native URI playback when available (avoids base64 overhead and uses system decoders)
+    if (rec.uri) {
+      src = rec.uri;
     }
-  
-    const audio = new Audio(src);
-    audioRef.current = audio;
-    setActiveIndex(index);
-    setCurrentTime(0);
-    setDuration(0);
-  
-    const detach = attachAudioEvents(audio);
-  
+
+    // Fallback to base64 if no URI or if URI playback fails
+    const ensurePlayable = async (): Promise<string> => {
+      if (src) return src;
+      return await resolveAudioSrc(rec);
+    };
+
     try {
-      await audio.play();
-      setIsPlaying(true);
+      const audio = new Audio(src || '');
+      audioRef.current = audio;
+      setActiveIndex(index);
+      setCurrentTime(0);
+      setDuration(0);
+
+      const detach = attachAudioEvents(audio);
+
+      try {
+        if (!src) {
+          // No URI assigned, resolve to base64 first
+          const b64 = await resolveAudioSrc(rec);
+          audio.src = b64;
+        }
+        await audio.play();
+        setIsPlaying(true);
+      } catch (firstErr) {
+        console.warn('URI play failed or no URI, falling back to base64', firstErr);
+        try {
+          const b64 = await resolveAudioSrc(rec);
+          audio.src = b64;
+          await audio.play();
+          setIsPlaying(true);
+        } catch (err) {
+          console.error('Audio play failed', err);
+          setIsPlaying(false);
+        }
+      }
+
+      audio.addEventListener('emptied', detach, { once: true });
     } catch (err) {
-      console.error('Audio play failed', err);
-      setIsPlaying(false);
+      console.error('Playback setup failed', err);
     }
-  
-    audio.addEventListener('emptied', detach, { once: true });
   };
   
 
@@ -244,6 +281,9 @@ const RecordingsPage: React.FC = () => {
             );
           })}
         </IonList>
+        <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
+          <IonRefresherContent></IonRefresherContent>
+        </IonRefresher>
       </IonContent>
     </IonPage>
   );

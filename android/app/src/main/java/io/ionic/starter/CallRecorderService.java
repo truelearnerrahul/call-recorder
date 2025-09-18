@@ -1,5 +1,9 @@
 package io.ionic.starter;
 
+import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION;
+
+import android.Manifest;
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -7,14 +11,25 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ServiceInfo;
+import android.media.AudioAttributes;
+import android.media.AudioFormat;
+import android.media.AudioPlaybackCaptureConfiguration;
+import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
+
+import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -28,17 +43,17 @@ public class CallRecorderService extends Service {
     private MediaRecorder recorder;
     private File outFile;
     private boolean isRecording = false;
-
+    private AudioRecord audioRecord;
     // Audio sources to try in order of preference
     private static final int[] AUDIO_SOURCES = {
-//            MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+           MediaRecorder.AudioSource.VOICE_COMMUNICATION,
             MediaRecorder.AudioSource.MIC,
             MediaRecorder.AudioSource.VOICE_RECOGNITION,
             MediaRecorder.AudioSource.CAMCORDER
     };
 
     private static final String[] SOURCE_NAMES = {
-//            "VOICE_COMMUNICATION",
+           "VOICE_COMMUNICATION",
             "MIC", "VOICE_RECOGNITION",
             "CAMCORDER"
     };
@@ -62,23 +77,120 @@ public class CallRecorderService extends Service {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && intent.getAction() != null) {
+
+            // // 1️⃣ Start foreground first
+            // Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+            //         .setContentTitle("Call Recording")
+            //         .setContentText("Recording in progress")
+            //         .setSmallIcon(R.mipmap.ic_launcher)
+            //         .build();
+
+            // startForeground(NOTIFICATION_ID, notification,
+            //         ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION);
+
+            // // 2️⃣ Now get MediaProjection safely
+            // int resultCode = intent.getIntExtra("resultCode", Activity.RESULT_CANCELED);
+            // Intent data = intent.getParcelableExtra("data");
+
+            // if (data == null) {
+            //     stopSelf();
+            //     return START_NOT_STICKY;
+            // }
+
+            // MediaProjectionManager projectionManager =
+            //         (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+            // MediaProjection mediaProjection = projectionManager.getMediaProjection(resultCode, data);
+
+            // AudioPlaybackCaptureConfiguration config =
+            //         new AudioPlaybackCaptureConfiguration.Builder(mediaProjection)
+            //                 .addMatchingUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+            //                 .build();
+
+
+            // AudioFormat format = new AudioFormat.Builder()
+            //         .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+            //         .setSampleRate(44100)
+            //         .setChannelMask(AudioFormat.CHANNEL_IN_MONO)
+            //         .build();
+
+            // int bufferSize = AudioRecord.getMinBufferSize(
+            //         44100,
+            //         AudioFormat.CHANNEL_IN_MONO,
+            //         AudioFormat.ENCODING_PCM_16BIT
+            // );
+
+            // if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            //     // TODO: Consider calling
+            //     //    ActivityCompat#requestPermissions
+            //     // here to request the missing permissions, and then overriding
+            //     //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //     //                                          int[] grantResults)
+            //     // to handle the case where the user grants the permission. See the documentation
+            //     // for ActivityCompat#requestPermissions for more details.
+            //     return START_STICKY;
+            // }
+            // audioRecord = new AudioRecord.Builder()
+            //         .setAudioFormat(format)
+            //         .setBufferSizeInBytes(bufferSize)
+            //         .setAudioPlaybackCaptureConfig(config)
+            //         .build();
+
             if (intent.getAction().equals("START_RECORDING")) {
+
+            //     String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+            //     File file = new File(getExternalFilesDir(Environment.DIRECTORY_MUSIC),
+            //             "CallRecords/call_" + timestamp + ".wav");
+            //     file.getParentFile().mkdirs();
+            //     startRecording(file, bufferSize);
                 // Check permissions before starting
-                if (checkPermissions()) {
-                    new Thread(this::startRecording).start();
-                } else {
-                    Log.e(TAG, "Missing required permissions");
-                    stopSelf();
-                }
-            } else if (intent.getAction().equals("STOP_RECORDING")) {
+               if (checkPermissions()) {
+                   new Thread(this::startRecording).start();
+               } else {
+                   Log.e(TAG, "Missing required permissions");
+                   stopSelf();
+               }
+           } else if (intent.getAction().equals("STOP_RECORDING")) {
                 stopRecordingAndService();
             }
         }
         return START_STICKY;
     }
+
+    // private void startRecording(File file, int bufferSize) {
+    //     isRecording = true;
+    //     audioRecord.startRecording();
+
+    //     new Thread(() -> {
+    //         try {
+    //             FileOutputStream fos = new FileOutputStream(file);
+    //             byte[] buffer = new byte[bufferSize];
+
+    //             // Write placeholder WAV header
+    //             byte[] wavHeader = new byte[44];
+    //             fos.write(wavHeader);
+
+    //             int totalAudioLen = 0;
+    //             while (isRecording) {
+    //                 int read = audioRecord.read(buffer, 0, buffer.length);
+    //                 if (read > 0) {
+    //                     fos.write(buffer, 0, read);
+    //                     totalAudioLen += read;
+    //                 }
+    //             }
+
+    //             fos.close();
+    //             WavFileWriter.writeWavHeader(file, totalAudioLen, 44100, 1, 16);
+
+    //         } catch (Exception e) {
+    //             e.printStackTrace();
+    //         }
+    //     }).start();
+    // }
+
 
     private boolean checkPermissions() {
         // Check if we have record audio permission
@@ -89,10 +201,8 @@ public class CallRecorderService extends Service {
 
         // Check for storage permission if needed
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            if (ContextCompat.checkSelfPermission(this,
-                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                return false;
-            }
+            return ContextCompat.checkSelfPermission(this,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
         }
 
         return true;
@@ -109,10 +219,12 @@ public class CallRecorderService extends Service {
             }
 
             String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-            String filename = "call_" + timestamp + ".amr"; // Using AMR format for better compatibility with voice
+            String filename = "call_" + timestamp + ".wav"; // Using AMR format for better compatibility with voice
             outFile = new File(dir, filename);
 
             recorder = new MediaRecorder();
+            // recorder.setOutputFormat(MediaRecorder.OutputFormat.AMR_NB);
+
 
             // Try different audio sources
             boolean audioSourceSet = false;
@@ -165,6 +277,7 @@ public class CallRecorderService extends Service {
                     try {
                         int typeMicrophone = Service.class.getField("FOREGROUND_SERVICE_TYPE_MICROPHONE").getInt(null);
                         startForeground(NOTIFICATION_ID, notification, typeMicrophone);
+                        // startForeground(NOTIFICATION_ID, notification, FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION);
                     } catch (Exception e) {
                         startForeground(NOTIFICATION_ID, notification);
                     }
@@ -220,7 +333,13 @@ public class CallRecorderService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        stopRecording();
+       stopRecording();
+        // isRecording = false;
+        // if (audioRecord != null) {
+        //     audioRecord.stop();
+        //     audioRecord.release();
+        //     audioRecord = null;
+        // }
         stopForeground(true);
         Log.i(TAG, "Recording service destroyed");
     }

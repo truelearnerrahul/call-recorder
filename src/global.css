@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+ion-fab{
+  margin-bottom: 80px;
+  margin-right: 20px;
+}

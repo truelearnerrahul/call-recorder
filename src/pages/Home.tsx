@@ -11,29 +11,39 @@ import {
   IonHeader,
   IonToolbar,
   IonTitle,
+  IonIcon,
+  IonSpinner,
 } from '@ionic/react';
 import { Capacitor } from '@capacitor/core';
-import { PhoneCall } from 'lucide-react';
-import Dialer from '../utils/dialer';
+import { warning } from 'ionicons/icons';
 
 const Home: React.FC = () => {
   const [permissionsGranted, setPermissionsGranted] = useState(false);
-  const [status, setStatus] = useState('idle');
+  const [status, setStatus] = useState('checking...');
   const [isDefaultDialer, setIsDefaultDialer] = useState(false);
 
   useEffect(() => {
-    async function checkDefaultDialer() {
+    async function initChecks() {
       try {
+        // Check if app is default dialer
         // @ts-ignore
-        const res = await (window as any).AndroidBridge?.isDefaultDialer();
-        setIsDefaultDialer(!!res?.granted);
+        await (window as any).AndroidBridge?.isDefaultDialer();
+
+        // Request permissions on load
+        if ((window as any).AndroidBridge) {
+          // @ts-ignore
+          await (window as any).AndroidBridge.requestPermissions();
+        }
+        setStatus('ready');
       } catch (e) {
-        console.warn('Error checking default dialer', e);
+        console.warn('Init checks failed', e);
+        setStatus('error during checks');
       }
     }
-    checkDefaultDialer();
+    initChecks();
   }, []);
 
+  // Listener for Android permission results
   React.useEffect(() => {
     function onRes(e: any) {
       const obj = e.detail;
@@ -50,12 +60,7 @@ const Home: React.FC = () => {
     };
   }, []);
 
-  useEffect(() => {
-    if ((window as any).AndroidBridge) {
-      (window as any).AndroidBridge.requestPermissions();
-    }
-  }, []);
-
+  // Callbacks from native side
   (window as any)._androidDialerResult = (res: { granted: boolean }) => {
     console.log('Default dialer accepted?', res.granted);
     if (res.granted) setIsDefaultDialer(true);
@@ -75,7 +80,7 @@ const Home: React.FC = () => {
     setStatus('requesting permissions...');
     try {
       if (Capacitor.getPlatform() !== 'android') {
-        setStatus('Only Android supported for call recording.');
+        setStatus('Only Android supported.');
         return;
       }
       // @ts-ignore
@@ -97,87 +102,71 @@ const Home: React.FC = () => {
     }
   };
 
-  const startDemoDial = () => {
-    window.open('tel:+1234567890');
+  const openAccessibilitySettings = async () => {
+    setStatus('requesting accessibility settings...');
+    try {
+      // @ts-ignore
+      await (window as any).AndroidBridge?.openAccessibilitySettings();
+      setStatus('requested accessibility settings; user will see a system prompt');
+    } catch (e) {
+      setStatus('error opening accessibility settings');
+    }
   };
-
-  useEffect(() => {
-    const incoming = Dialer.addListener('callIncoming', (info) => {
-      console.log('incoming:', info);
-    });
-    const answered = Dialer.addListener('callAnswered', (info) => {
-      console.log('answered:', info);
-    });
-    const ended = Dialer.addListener('callEnded', (info) => {
-      console.log('ended:', info);
-    });
-
-    return () => {
-      incoming.then((h) => h.remove());
-      answered.then((h) => h.remove());
-      ended.then((h) => h.remove());
-    };
-  }, []);
 
   return (
     <IonPage>
-      <IonContent>
-        <IonHeader>
-          <IonToolbar>
-          </IonToolbar>
-        </IonHeader>
-        
-        <IonCard className="w-full max-w-lg shadow-xl rounded-2xl bg-white dark:bg-gray-800">
+      {/* <IonHeader translucent>
+        <IonToolbar>
+          <IonTitle>Call Recorder MVP</IonTitle>
+        </IonToolbar>
+      </IonHeader> */}
+
+      <IonContent fullscreen className="ion-padding">
+        {status === 'checking...' ? (
+          <div className="flex justify-center items-center h-full">
+            <IonSpinner name="crescent" />
+          </div>
+        ) : !isDefaultDialer || !permissionsGranted ? (
+          <IonCard className="m-4 shadow-lg rounded-2xl">
             <IonCardHeader>
-              <IonCardTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-                Call Recorder MVP
+              <IonCardTitle className="flex items-center gap-2 text-red-600">
+                <IonIcon icon={warning} />
+                Setup Required
               </IonCardTitle>
             </IonCardHeader>
             <IonCardContent>
-              <IonText className="text-gray-600 dark:text-gray-300">
-                This app will attempt to detect calls and start a native
-                recorder. Behavior varies by device.
+              <IonText>
+                To use this app, please make it the <strong>default dialer</strong>
+                and grant all required permissions.
               </IonText>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                <IonButton
-                  shape="round"
-                  className="flex-1"
-                  onClick={requestPermissions}
-                >
-                  Request Permissions
+              <div className="mt-4 flex flex-col gap-3">
+                {!isDefaultDialer && (
+                  <IonButton expand="block" onClick={requestDefaultDialer}>
+                    Set as Default Dialer
+                  </IonButton>
+                )}
+                {!permissionsGranted && (
+                  <IonButton expand="block" color="secondary" onClick={requestPermissions}>
+                    Grant Permissions
+                  </IonButton>
+                )}
+                <IonButton expand="block" fill="outline" onClick={openAccessibilitySettings}>
+                  Open Accessibility Settings
                 </IonButton>
-                <IonButton
-                  shape="round"
-                  className="flex-1"
-                  onClick={startDemoDial}
-                  color="secondary"
-                >
-                  Open Demo Dial
-                </IonButton>
-                <IonButton
-                shape="round"
-                className="flex-1"
-                color="secondary"
-                onClick={requestDefaultDialer}
-              >
-                Set as Default
-              </IonButton>
-                <IonButton
-                shape="round"
-                className="flex-1"
-                color="secondary"
-                routerLink='/recordings'
-              >
-               Call Recordings
-              </IonButton>
               </div>
-
-              <div className="mt-6 text-sm text-gray-700 dark:text-gray-300">
+              <div className="mt-4 text-sm text-gray-600">
                 <strong>Status:</strong> {status}
               </div>
             </IonCardContent>
           </IonCard>
+        ) : (
+          <>
+
+            <div className='mt-10! text-2xl font-bold'>
+              Home Page
+            </div>
+          </>
+        )}
       </IonContent>
     </IonPage>
   );

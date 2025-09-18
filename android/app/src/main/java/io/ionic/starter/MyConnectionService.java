@@ -1,6 +1,7 @@
 package io.ionic.starter;
 
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.telecom.Connection;
 import android.telecom.ConnectionRequest;
@@ -8,8 +9,11 @@ import android.telecom.ConnectionService;
 import android.telecom.PhoneAccountHandle;
 import android.telecom.TelecomManager;
 
+import androidx.annotation.RequiresApi;
+
 public class MyConnectionService extends ConnectionService {
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public Connection onCreateIncomingConnection(PhoneAccountHandle connectionManagerPhoneAccount, ConnectionRequest request) {
         MyPhoneConnection connection = new MyPhoneConnection();
@@ -25,6 +29,7 @@ public class MyConnectionService extends ConnectionService {
         return connection;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public Connection onCreateOutgoingConnection(PhoneAccountHandle connectionManagerPhoneAccount, ConnectionRequest request) {
         MyPhoneConnection connection = new MyPhoneConnection();
