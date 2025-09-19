@@ -42,7 +42,8 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         registerPlugin(DialerPlugin.class);
-        registerPlugin(CallHistoryPlugin.class);
+        registerPlugin(io.ionic.starter.CallHistoryPlugin.class);
+        registerPlugin(io.ionic.starter.ContactsPlugin.class);
 
         super.onCreate(savedInstanceState);
 

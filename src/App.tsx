@@ -35,7 +35,7 @@ import '@ionic/react/css/palettes/dark.system.css';
 import './theme/variables.css';
 import Recordings from './pages/Recordings';
 import { call, home, keypad, mic, people } from 'ionicons/icons';
-import { Contacts } from './pages/Contacts';
+import { ContactsPage } from './pages/ContactsPage';
 import { Recents } from './pages/Recents';
 import { StatusBar } from '@capacitor/status-bar';
 
@@ -52,7 +52,7 @@ const App: React.FC = () => (
 
         <Route path="/home" render={() => <Home />} exact={true} />
         <Route path="/recents" render={() => <Recents />} exact={true} />
-        <Route path="/contacts" render={() => <Contacts />} exact={true} />
+        <Route path="/contacts" render={() => <ContactsPage />} exact={true} />
         <Route path="/recordings" render={() => <Recordings />} exact={true} />
       </IonRouterOutlet>
 
