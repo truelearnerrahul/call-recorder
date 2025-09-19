@@ -38,6 +38,10 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        registerPlugin(DialerPlugin.class);
+        registerPlugin(CallHistoryPlugin.class);
+
         super.onCreate(savedInstanceState);
 
         // keep a reference
@@ -46,7 +50,6 @@ public class MainActivity extends BridgeActivity {
         // expose to JS
         webView.addJavascriptInterface(new AndroidBridge(this, webView), "AndroidBridge");
         registerPhoneAccount();
-        registerPlugin(DialerPlugin.class);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)

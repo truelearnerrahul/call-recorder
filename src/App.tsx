@@ -37,6 +37,7 @@ import Recordings from './pages/Recordings';
 import { call, home, keypad, library, mic, people, search, videocamOutline } from 'ionicons/icons';
 import { Contacts } from './pages/Contacts';
 import { Recents } from './pages/Recents';
+import CallHistoryPage from './pages/CallHistory';
 
 setupIonicReact();
 
@@ -67,6 +68,9 @@ const App: React.FC = () => (
         <Route path="/recents" render={() => <Recents />} exact={true} />
         <Route path="/contacts" render={() => <Contacts />} exact={true} />
         <Route path="/recordings" render={() => <Recordings />} exact={true} />
+        <Route exact path="/call-history">
+          <CallHistoryPage />
+        </Route>
       </IonRouterOutlet>
 
 
