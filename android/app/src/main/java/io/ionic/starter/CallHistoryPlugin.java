@@ -22,10 +22,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 @CapacitorPlugin(
-    name = "CallHistory",
-    permissions = {
-        @Permission(strings = { Manifest.permission.READ_CALL_LOG }, alias = "callLog")
-    }
+        name = "CallHistory",
+        permissions = {
+                @Permission(strings = { Manifest.permission.READ_CALL_LOG }, alias = "callLog")
+        }
 )
 public class CallHistoryPlugin extends Plugin {
 
@@ -36,7 +36,7 @@ public class CallHistoryPlugin extends Plugin {
         super.load();
         Log.d(TAG, "CallHistoryPlugin loaded successfully");
     }
-    
+
     @PluginMethod
     public void getCallHistory(PluginCall call) {
         Log.d(TAG, "getCallHistory method called");
@@ -60,49 +60,54 @@ public class CallHistoryPlugin extends Plugin {
     private JSObject fetchCallHistory(int limit) throws JSONException {
         Context context = getContext();
         ContentResolver contentResolver = context.getContentResolver();
-        
+
         String[] projection = new String[] {
-            Calls._ID,
-            Calls.NUMBER,
-            Calls.DATE,
-            Calls.DURATION,
-            Calls.TYPE,
-            Calls.CACHED_NAME,
-            Calls.CACHED_NUMBER_TYPE,
-            Calls.CACHED_NUMBER_LABEL
+                Calls._ID,
+                Calls.NUMBER,
+                Calls.DATE,
+                Calls.DURATION,
+                Calls.TYPE,
+                Calls.CACHED_NAME,
+                Calls.CACHED_NUMBER_TYPE,
+                Calls.CACHED_NUMBER_LABEL
         };
 
-        String sortOrder = Calls.DATE + " DESC LIMIT " + limit;
-        
+        // ✅ No LIMIT in sortOrder
+        String sortOrder = Calls.DATE + " DESC";
+
         Cursor cursor = null;
         JSONArray callsArray = new JSONArray();
-        
+
         try {
             cursor = contentResolver.query(
-                CallLog.Calls.CONTENT_URI,
-                projection,
-                null,
-                null,
-                sortOrder
+                    CallLog.Calls.CONTENT_URI,
+                    projection,
+                    null,
+                    null,
+                    sortOrder
             );
 
-            if (cursor != null && cursor.getCount() > 0) {
-                while (cursor.moveToNext()) {
+            if (cursor != null) {
+                int count = 0;
+                while (cursor.moveToNext() && count < limit) {
                     @SuppressLint("Range") String number = cursor.getString(cursor.getColumnIndex(Calls.NUMBER));
                     @SuppressLint("Range") long date = cursor.getLong(cursor.getColumnIndex(Calls.DATE));
                     @SuppressLint("Range") int duration = cursor.getInt(cursor.getColumnIndex(Calls.DURATION));
                     @SuppressLint("Range") int type = cursor.getInt(cursor.getColumnIndex(Calls.TYPE));
                     @SuppressLint("Range") String cachedName = cursor.getString(cursor.getColumnIndex(Calls.CACHED_NAME));
-                    
+
                     JSONObject callObject = new JSONObject();
                     callObject.put("number", number != null ? number : "");
                     callObject.put("date", date);
                     callObject.put("duration", duration);
                     callObject.put("type", getCallTypeString(type));
                     callObject.put("name", cachedName != null ? cachedName : "");
-                    
+
                     callsArray.put(callObject);
+                    count++;
                 }
+            } else {
+                Log.e(TAG, "Call log query returned null cursor");
             }
         } finally {
             if (cursor != null) {
@@ -137,20 +142,20 @@ public class CallHistoryPlugin extends Plugin {
     @Override
     protected void handleRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.handleRequestPermissionsResult(requestCode, permissions, grantResults);
-        
+
         PluginCall savedCall = getSavedCall();
         if (savedCall == null) {
             Log.e(TAG, "No stored plugin call for permissions request result");
             return;
         }
-        
+
         for (int result : grantResults) {
             if (result != PackageManager.PERMISSION_GRANTED) {
                 savedCall.reject("Permission denied");
                 return;
             }
         }
-        
+
         if (savedCall.getMethodName().equals("getCallHistory")) {
             try {
                 int limit = savedCall.getInt("limit", 100);
