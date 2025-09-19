@@ -1,4 +1,4 @@
-package io.ionic.starter;
+package io.ionic.starter.services;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -7,13 +7,14 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Build;
 import android.telecom.Call;
 import android.telecom.CallAudioState;
 import android.telecom.InCallService;
 import android.util.Log;
 import androidx.core.app.NotificationCompat;
+
+import io.ionic.starter.activities.InCallActivity;
 
 public class MyInCallService extends InCallService {
     private static final String TAG = "MyInCallService";

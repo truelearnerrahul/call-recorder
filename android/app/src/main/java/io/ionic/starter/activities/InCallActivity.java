@@ -1,4 +1,4 @@
-package io.ionic.starter;
+package io.ionic.starter.activities;
 
 import android.Manifest;
 import android.content.Context;
@@ -24,6 +24,9 @@ import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import io.ionic.starter.R;
+import io.ionic.starter.services.MyInCallService;
 
 public class InCallActivity extends AppCompatActivity {
 

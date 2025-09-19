@@ -115,11 +115,11 @@ const Home: React.FC = () => {
 
   return (
     <IonPage>
-      {/* <IonHeader translucent>
+      <IonHeader translucent>
         <IonToolbar>
           <IonTitle>Call Recorder MVP</IonTitle>
         </IonToolbar>
-      </IonHeader> */}
+      </IonHeader>
 
       <IonContent fullscreen className="ion-padding">
         {status === 'checking...' ? (

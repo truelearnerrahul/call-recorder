@@ -1,20 +1,18 @@
-package io.ionic.starter;
+package io.ionic.starter.plugins;
 
 import android.content.Context;
 import android.content.Intent;
-import android.telecom.PhoneAccountHandle;
-import android.telecom.TelecomManager;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
-
-import androidx.annotation.Nullable;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.PluginMethod;
+
+import io.ionic.starter.MainActivity;
 
 /**
  * DialerPlugin - exposes methods and emits events to JS

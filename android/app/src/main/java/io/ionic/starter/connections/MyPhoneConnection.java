@@ -1,10 +1,12 @@
-package io.ionic.starter;
+package io.ionic.starter.connections;
 
 import android.telecom.Connection;
 import android.telecom.DisconnectCause;
 import android.util.Log;
 
 import com.getcapacitor.JSObject;
+
+import io.ionic.starter.plugins.DialerPlugin;
 
 public class MyPhoneConnection extends Connection {
     private static final String TAG = "MyPhoneConnection";

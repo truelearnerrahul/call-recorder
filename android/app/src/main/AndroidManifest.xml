@@ -24,31 +24,32 @@
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
     <application android:allowBackup="true" android:icon="@mipmap/ic_launcher" android:label="@string/app_name" android:requestLegacyExternalStorage="true" android:roundIcon="@mipmap/ic_launcher_round" android:supportsRtl="true" android:theme="@style/AppTheme" android:usesCleartextTraffic="true">
         <uses-library android:name="android.test.runner" android:required="false" />
-        <service android:exported="true" android:label="My Phone Service" android:name="io.ionic.starter.MyConnectionService" android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE">
+        <service android:exported="true" android:label="My Phone Service" android:name="io.ionic.starter.services.MyConnectionService" android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE">
             <intent-filter>
                 <action android:name="android.telecom.ConnectionService" />
             </intent-filter>
         </service>
-        <service android:exported="true" android:name=".MyInCallService" android:permission="android.permission.BIND_INCALL_SERVICE">
+        <service android:exported="true" android:name=".services.MyInCallService" android:permission="android.permission.BIND_INCALL_SERVICE">
             <meta-data android:name="android.telecom.IN_CALL_SERVICE_UI" android:value="true" />
             <meta-data android:name="android.telecom.IN_CALL_SERVICE_RINGING" android:value="true" />
             <intent-filter>
                 <action android:name="android.telecom.InCallService" />
             </intent-filter>
         </service>
-        <service android:enabled="true" android:exported="false" android:foregroundServiceType="mediaProjection|microphone" android:name=".CallRecorderService" />
-        <service android:exported="true" android:name=".MyCallScreeningService" android:permission="android.permission.BIND_SCREENING_SERVICE">
+        <service android:enabled="true" android:exported="false" android:foregroundServiceType="mediaProjection|microphone" android:name=".services.CallRecorderService" />
+        <service android:exported="true" android:name=".services.MyCallScreeningService" android:permission="android.permission.BIND_SCREENING_SERVICE"
+            tools:targetApi="24">
             <intent-filter>
                 <action android:name="android.telecom.CallScreeningService" />
             </intent-filter>
         </service>
-        <service android:exported="false" android:name=".AccessibilityCallService" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+        <service android:exported="false" android:name=".services.AccessibilityCallService" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
             <meta-data android:name="android.accessibilityservice" android:resource="@xml/accessibility_service_config" />
         </service>
-        <receiver android:exported="true" android:name=".CallReceiver">
+        <receiver android:exported="true" android:name=".receivers.CallReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.PHONE_STATE" />
                 <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
@@ -80,7 +81,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:excludeFromRecents="true" android:exported="true" android:launchMode="singleTask" android:name=".InCallActivity" android:showOnLockScreen="true" android:showWhenLocked="true" android:theme="@style/AppTheme.NoActionBarFullScreen" android:turnScreenOn="true" tools:targetApi="27" />
+        <activity android:excludeFromRecents="true" android:exported="true" android:launchMode="singleTask" android:name=".activities.InCallActivity" android:showOnLockScreen="true" android:showWhenLocked="true" android:theme="@style/AppTheme.NoActionBarFullScreen" android:turnScreenOn="true" tools:targetApi="27" />
         <provider android:authorities="${applicationId}.fileprovider" android:exported="false" android:grantUriPermissions="true" android:name="androidx.core.content.FileProvider">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>

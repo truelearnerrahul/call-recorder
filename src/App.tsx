@@ -1,5 +1,5 @@
 import { Redirect, Route } from 'react-router-dom';
-import { IonApp, IonContent, IonFab, IonFabButton, IonFooter, IonHeader, IonIcon, IonLabel, IonRouterOutlet, IonTab, IonTabBar, IonTabButton, IonTabs, IonTitle, IonToolbar, setupIonicReact } from '@ionic/react';
+import { IonApp, IonFab, IonFabButton, IonIcon, IonRouterOutlet, IonTabBar, IonTabButton, IonTabs, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import Home from './pages/Home';
 
@@ -34,32 +34,18 @@ import '@ionic/react/css/palettes/dark.system.css';
 /* Theme variables */
 import './theme/variables.css';
 import Recordings from './pages/Recordings';
-import { call, home, keypad, library, mic, people, search, videocamOutline } from 'ionicons/icons';
+import { call, home, keypad, mic, people } from 'ionicons/icons';
 import { Contacts } from './pages/Contacts';
 import { Recents } from './pages/Recents';
-import CallHistoryPage from './pages/CallHistory';
+import { StatusBar } from '@capacitor/status-bar';
 
 setupIonicReact();
+StatusBar.setOverlaysWebView({ overlay: false });
 
 const App: React.FC = () => (
 
   <IonApp>
     <IonReactRouter>
-      {/* <IonRouterOutlet>
-        <Route exact path="/home">
-          <Home />
-        </Route>
-        <Route exact path="/recordings">
-          <Recordings />
-        </Route>
-        <Route exact path="/">
-          <Redirect to="/home" />
-        </Route>
-        <Route path="/home" render={() => <Home />} exact={true} />
-        <Route path="/recents" render={() => <Recents />} exact={true} />
-        <Route path="/contacts" render={() => <Contacts />} exact={true} />
-        <Route path="/recordings" render={() => <Recordings />} exact={true} /> 
-      </IonRouterOutlet> */}
     <IonTabs>
       <IonRouterOutlet>
         <Redirect exact path="/" to="/home" />
@@ -68,9 +54,6 @@ const App: React.FC = () => (
         <Route path="/recents" render={() => <Recents />} exact={true} />
         <Route path="/contacts" render={() => <Contacts />} exact={true} />
         <Route path="/recordings" render={() => <Recordings />} exact={true} />
-        <Route exact path="/call-history">
-          <CallHistoryPage />
-        </Route>
       </IonRouterOutlet>
 
 

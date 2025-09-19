@@ -1,4 +1,4 @@
-package io.ionic.starter;
+package io.ionic.starter.services;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;

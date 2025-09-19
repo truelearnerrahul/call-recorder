@@ -7,7 +7,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -28,6 +27,9 @@ import com.getcapacitor.BridgeActivity;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import io.ionic.starter.plugins.DialerPlugin;
+import io.ionic.starter.services.MyConnectionService;
 
 public class MainActivity extends BridgeActivity {
     private static final int REQUEST_PERM = 1001;
@@ -59,7 +61,7 @@ public class MainActivity extends BridgeActivity {
         startActivityForResult(intent, REQUEST_CODE_CAPTURE_AUDIO);
     }
 
-    void registerPhoneAccount() {
+    public void registerPhoneAccount() {
         TelecomManager telecomManager = (TelecomManager) getSystemService(TELECOM_SERVICE);
         ComponentName componentName = new ComponentName(this, MyConnectionService.class);
         PhoneAccountHandle handle = new PhoneAccountHandle(componentName, getPackageName());
@@ -125,9 +127,15 @@ public class MainActivity extends BridgeActivity {
                 String defaultPkg = tm.getDefaultDialerPackage();
                 boolean isDefault = activity.getPackageName().equals(defaultPkg);
                 if (webView != null) {
-                    webView.post(() -> webView.evaluateJavascript(
+                    if(isDefault){
+                        webView.post(() -> webView.evaluateJavascript(
                             "window._androidDialerResult && window._androidDialerResult({granted:true})",
                             null));
+                        }else{
+                            webView.post(() -> webView.evaluateJavascript(
+                            "window._androidDialerResult && window._androidDialerResult({granted:false})",
+                            null));
+                        }
                 }
                 return isDefault;
             } catch (Exception e) {

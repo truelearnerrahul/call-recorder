@@ -1,8 +1,7 @@
-package io.ionic.starter;
+package io.ionic.starter.services;
 
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.telecom.Connection;
 import android.telecom.ConnectionRequest;
 import android.telecom.ConnectionService;
@@ -10,6 +9,8 @@ import android.telecom.PhoneAccountHandle;
 import android.telecom.TelecomManager;
 
 import androidx.annotation.RequiresApi;
+
+import io.ionic.starter.connections.MyPhoneConnection;
 
 public class MyConnectionService extends ConnectionService {
 

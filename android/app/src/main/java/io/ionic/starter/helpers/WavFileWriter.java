@@ -1,4 +1,4 @@
-package io.ionic.starter;
+package io.ionic.starter.helpers;
 
 import java.io.File;
 import java.io.RandomAccessFile;
