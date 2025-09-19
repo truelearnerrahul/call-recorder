@@ -117,7 +117,7 @@ const Home: React.FC = () => {
     <IonPage>
       <IonHeader translucent>
         <IonToolbar>
-          <IonTitle>Call Recorder MVP</IonTitle>
+          <IonTitle className="ion-padding-start">Call Recording MVP</IonTitle>
         </IonToolbar>
       </IonHeader>
 

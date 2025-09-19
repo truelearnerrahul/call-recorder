@@ -1,4 +1,4 @@
-import { IonContent, IonListHeader, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonIcon, IonPage } from "@ionic/react";
+import { IonContent, IonListHeader, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonIcon, IonPage, IonHeader, IonTitle, IonToolbar } from "@ionic/react";
 import { personCircleOutline } from "ionicons/icons";
 
 const contacts = [
@@ -13,8 +13,12 @@ const contacts = [
 export const Contacts: React.FC = () => {
   return (
     <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonTitle className="ion-padding-start">Contacts</IonTitle>
+        </IonToolbar>
+      </IonHeader>
       <IonContent fullscreen>
-        <IonListHeader lines="inset">Contacts</IonListHeader>
         <IonGrid>
           <IonRow>
             {contacts.map((contact) => (

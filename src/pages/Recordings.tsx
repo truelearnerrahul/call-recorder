@@ -31,7 +31,7 @@ const formatTime = (sec: number) => {
   if (!isFinite(sec) || sec < 0) sec = 0;
   const m = Math.floor(sec / 60);
   const s = Math.floor(sec % 60);
-  return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 };
 
 const RecordingsPage: React.FC = () => {
@@ -125,25 +125,25 @@ const RecordingsPage: React.FC = () => {
       path: `Music/CallRecords/${rec.name}`,
       directory: Directory.External
     });
-  
+
     const ext = rec.name.split('.').pop()?.toLowerCase();
     const mime =
       ext === 'mp3' ? 'audio/mpeg' :
-      ext === 'm4a' ? 'audio/mp4' :
-      ext === 'aac' ? 'audio/aac' :
-      ext === 'wav' ? 'audio/wav' :
-      ext === 'amr' ? 'audio/amr' :
-      ext === '3gp' ? 'audio/3gpp' :
-      'audio/mp4';
-  
+        ext === 'm4a' ? 'audio/mp4' :
+          ext === 'aac' ? 'audio/aac' :
+            ext === 'wav' ? 'audio/wav' :
+              ext === 'amr' ? 'audio/amr' :
+                ext === '3gp' ? 'audio/3gpp' :
+                  'audio/mp4';
+
     return `data:${mime};base64,${file.data}`;
   };
-  
+
 
   const playIndex = async (index: number) => {
     const rec = recordings[index];
     if (!rec) return;
-  
+
     // If same item, toggle play/pause
     if (activeIndex === index && audioRef.current) {
       if (isPlaying) {
@@ -159,7 +159,7 @@ const RecordingsPage: React.FC = () => {
       }
       return;
     }
-  
+
     // Stop previous
     if (audioRef.current) {
       audioRef.current.pause();
@@ -167,7 +167,7 @@ const RecordingsPage: React.FC = () => {
       audioRef.current.load();
       audioRef.current = null;
     }
-  
+
     let src: string | undefined = undefined;
     // Prefer native URI playback when available (avoids base64 overhead and uses system decoders)
     if (rec.uri) {
@@ -215,7 +215,7 @@ const RecordingsPage: React.FC = () => {
       console.error('Playback setup failed', err);
     }
   };
-  
+
 
   const pauseCurrent = () => {
     if (audioRef.current) {
@@ -235,10 +235,11 @@ const RecordingsPage: React.FC = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar>
+          <IonTitle className="ion-padding-start">Recordings</IonTitle>
         </IonToolbar>
       </IonHeader>
       <IonContent className="ion-padding">
-        <IonList inset={true}>
+        {recordings.length > 0 && <IonList inset={true}>
           {recordings.map((rec, idx) => {
             const isActive = idx === activeIndex;
             const left = isActive ? formatTime(currentTime) : '00:00';
@@ -280,7 +281,8 @@ const RecordingsPage: React.FC = () => {
               </IonItem>
             );
           })}
-        </IonList>
+        </IonList>}
+        {recordings.length === 0 && <div className="flex justify-center items-center h-full"><IonText>No Recordings Found</IonText></div>}
         <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
           <IonRefresherContent></IonRefresherContent>
         </IonRefresher>
