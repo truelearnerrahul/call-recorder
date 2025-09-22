@@ -13,6 +13,7 @@ import org.fossify.phone.helpers.CallManager
 import org.fossify.phone.helpers.CallNotificationManager
 import org.fossify.phone.helpers.NoCall
 import org.fossify.phone.models.Events
+import org.fossify.phone.services.CallRecordingService
 import org.greenrobot.eventbus.EventBus
 
 class CallService : InCallService() {
@@ -57,6 +58,10 @@ class CallService : InCallService() {
         if (CallManager.getPhoneState() == NoCall) {
             CallManager.inCallService = null
             callNotificationManager.cancelNotification()
+            // Ensure any ongoing recording is stopped when all calls end
+            try {
+                CallRecordingService.stop(this)
+            } catch (_: Exception) {}
         } else {
             callNotificationManager.setupNotification()
             if (wasPrimaryCall) {

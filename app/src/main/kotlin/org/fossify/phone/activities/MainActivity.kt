@@ -226,6 +226,7 @@ class MainActivity : SimpleActivity() {
                     R.id.change_view_type -> changeViewType()
                     R.id.column_count -> changeColumnCount()
                     R.id.about -> launchAbout()
+                    R.id.open_recordings -> startActivity(Intent(this@MainActivity, RecordingsActivity::class.java))
                     else -> return@setOnMenuItemClickListener false
                 }
                 return@setOnMenuItemClickListener true

@@ -68,6 +68,34 @@
     <string name="call_notification_channel">Call status</string>
     <string name="call_notification_channel_high_priority">Call status (high priority)</string>
 
+    <!-- Recording -->
+    <string name="start_call_recording">Start recording</string>
+    <string name="stop_call_recording">Stop recording</string>
+    <string name="recording_ongoing">Call recording…</string>
+    <string name="recording_notification_channel">Call recording</string>
+    <string name="recording_saved">Recording saved</string>
+    <string name="recording_failed">Recording failed</string>
+    <string name="record_audio_permission_required">Microphone permission is required to record calls</string>
+    <string name="stop">Stop</string>
+
+    <!-- Recordings -->
+    <string name="recordings">Recordings</string>
+    <string name="no_recordings_found">No recordings found</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="delete">Delete</string>
+    <string name="share">Share</string>
+    <string name="shared">Shared</string>
+    <string name="file_info">%1$s • %2$s</string>
+    <string name="zero_time">%1$s</string>
+    <string name="import_completed">Imported %1$d recording(s)</string>
+    <string name="rename">Rename</string>
+    <string name="renamed">Renamed</string>
+    <string name="deleted">Deleted</string>
+    <string name="proceed_with_deletion">Are you sure you want to delete this recording?</string>
+    <string name="unknown_error_occurred">Unknown error occurred</string>
+    <string name="more_options">More options</string>
+
     <!-- Speed dial -->
     <string name="speed_dial">Speed dial</string>
     <string name="manage_speed_dial">Manage speed dial</string>
