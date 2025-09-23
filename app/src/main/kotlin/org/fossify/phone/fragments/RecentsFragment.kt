@@ -2,6 +2,7 @@ package org.fossify.phone.fragments
 
 import android.content.Context
 import android.util.AttributeSet
+import android.provider.CallLog.Calls
 import org.fossify.commons.extensions.*
 import org.fossify.commons.helpers.*
 import org.fossify.commons.models.contacts.Contact
@@ -29,6 +30,7 @@ class RecentsFragment(
 
     private var searchQuery: String? = null
     private var recentsHelper = RecentsHelper(context)
+    private var currentFilterType: Int? = null // null means All
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -50,6 +52,8 @@ class RecentsFragment(
                 requestCallLogPermission()
             }
         }
+
+        setupFilterChips()
     }
 
     override fun setupColors(textColor: Int, primaryColor: Int, properPrimaryColor: Int) {
@@ -75,7 +79,12 @@ class RecentsFragment(
     override fun onSearchClosed() {
         searchQuery = null
         showOrHidePlaceholder(allRecentCalls.isEmpty())
-        recentsAdapter?.updateItems(allRecentCalls)
+        val recentCalls = allRecentCalls.filterIsInstance<RecentCall>()
+        prepareCallLog(filterByType(recentCalls)) { items ->
+            activity?.runOnUiThread {
+                recentsAdapter?.updateItems(items)
+            }
+        }
     }
 
     override fun onSearchQueryChanged(text: String) {
@@ -89,9 +98,8 @@ class RecentsFragment(
             val fixedText = searchQuery!!.trim().replace("\\s+".toRegex(), " ")
             val recentCalls = allRecentCalls
                 .filterIsInstance<RecentCall>()
-                .filter {
-                    it.name.contains(fixedText, true) || it.doesContainPhoneNumber(fixedText)
-                }
+                .filter { it.name.contains(fixedText, true) || it.doesContainPhoneNumber(fixedText) }
+                .let { filterByType(it) }
                 .sortedWith(
                     compareByDescending<RecentCall> { it.dayCode }
                         .thenByDescending { it.name.startsWith(fixedText, true) }
@@ -197,12 +205,14 @@ class RecentsFragment(
 
         with(recentsHelper) {
             if (context.config.groupSubsequentCalls) {
-                getGroupedRecentCalls(existingRecentCalls, queryCount) {
-                    prepareCallLog(it, callback)
+                getGroupedRecentCalls(existingRecentCalls, queryCount) { calls ->
+                    val filtered = filterByType(calls)
+                    prepareCallLog(filtered, callback)
                 }
             } else {
-                getRecentCalls(existingRecentCalls, queryCount) {
-                    prepareCallLog(it, callback)
+                getRecentCalls(existingRecentCalls, queryCount) { calls ->
+                    val filtered = filterByType(calls)
+                    prepareCallLog(filtered, callback)
                 }
             }
         }
@@ -242,6 +252,50 @@ class RecentsFragment(
             calls.filterNot { it.phoneNumber in privateNumbers }
         } else {
             calls
+        }
+    }
+
+    private fun filterByType(calls: List<RecentCall>): List<RecentCall> {
+        return when (currentFilterType) {
+            Calls.INCOMING_TYPE -> calls.filter { it.type == Calls.INCOMING_TYPE }
+            Calls.OUTGOING_TYPE -> calls.filter { it.type == Calls.OUTGOING_TYPE }
+            Calls.REJECTED_TYPE -> calls.filter { it.type == Calls.REJECTED_TYPE }
+            Calls.MISSED_TYPE -> calls.filter { it.type == Calls.MISSED_TYPE }
+            else -> calls
+        }
+    }
+
+    private fun applyGroupingAndFilters(calls: List<RecentCall>) : List<CallLogItem> {
+        var result: List<RecentCall> = calls
+        result = filterByType(result)
+        var grouped: List<CallLogItem> = emptyList()
+        prepareCallLog(result) { grouped = it }
+        return grouped
+    }
+
+    private fun setupFilterChips() {
+        // default All
+        currentFilterType = null
+        binding.recentsFilterGroup.setOnCheckedStateChangeListener { _, checkedIds ->
+            currentFilterType = when (checkedIds.firstOrNull()) {
+                R.id.chip_incoming -> Calls.INCOMING_TYPE
+                R.id.chip_outgoing -> Calls.OUTGOING_TYPE
+                R.id.chip_rejected -> Calls.REJECTED_TYPE
+                R.id.chip_missed -> Calls.MISSED_TYPE
+                else -> null
+            }
+
+            if (searchQuery.isNullOrEmpty()) {
+                val recentCalls = allRecentCalls.filterIsInstance<RecentCall>()
+                prepareCallLog(filterByType(recentCalls)) { items ->
+                    activity?.runOnUiThread {
+                        showOrHidePlaceholder(items.isEmpty())
+                        recentsAdapter?.updateItems(items)
+                    }
+                }
+            } else {
+                updateSearchResult()
+            }
         }
     }
 
