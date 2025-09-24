@@ -142,5 +142,6 @@ dependencies {
     implementation(libs.eventbus)
     implementation(libs.libphonenumber)
     implementation(libs.geocoder)
+    implementation(libs.mpandroidchart)
     detektPlugins(libs.compose.detekt)
 }

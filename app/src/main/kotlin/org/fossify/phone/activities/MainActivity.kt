@@ -17,6 +17,7 @@ import android.widget.Toast
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.snackbar.Snackbar
 import me.grantland.widget.AutofitHelper
+import org.fossify.commons.R as CommonsR
 import org.fossify.commons.dialogs.ChangeViewTypeDialog
 import org.fossify.commons.dialogs.ConfirmationDialog
 import org.fossify.commons.dialogs.PermissionRequiredDialog
@@ -41,6 +42,7 @@ import org.fossify.phone.fragments.MyViewPagerFragment
 import org.fossify.phone.fragments.RecentsFragment
 import org.fossify.phone.helpers.OPEN_DIAL_PAD_AT_LAUNCH
 import org.fossify.phone.helpers.RecentsHelper
+import org.fossify.phone.helpers.TAB_ANALYTICS
 import org.fossify.phone.helpers.tabsList
 import org.fossify.phone.models.Events
 import org.greenrobot.eventbus.EventBus
@@ -342,6 +344,10 @@ class MainActivity : SimpleActivity() {
             icons.add(R.drawable.ic_clock_filled_vector)
         }
 
+        if (showTabs and TAB_ANALYTICS != 0) {
+            icons.add(R.drawable.ic_analytics_filled_vector)
+        }
+
         return icons
     }
 
@@ -359,6 +365,10 @@ class MainActivity : SimpleActivity() {
 
         if (showTabs and TAB_CALL_HISTORY != 0) {
             icons.add(R.drawable.ic_clock_vector)
+        }
+
+        if (showTabs and TAB_ANALYTICS != 0) {
+            icons.add(R.drawable.ic_analytics_outline_vector)
         }
 
         return icons
@@ -432,8 +442,16 @@ class MainActivity : SimpleActivity() {
                 binding.viewPager.currentItem = it.position
                 updateBottomTabItemColors(it.customView, true, getSelectedTabDrawableIds()[it.position])
 
-                val lastPosition = binding.mainTabsHolder.tabCount - 1
-                if (it.position == lastPosition && config.showTabs and TAB_CALL_HISTORY > 0) {
+                // Close expanded search on Analytics tab to avoid showing the search bar there
+                val isAnalyticsTab = getTabLabel(it.position) == getString(R.string.analytics_tab)
+                if (isAnalyticsTab && binding.mainMenu.isSearchOpen) {
+                    binding.mainMenu.closeSearch()
+                }
+
+                // Clear missed calls when Recents tab is selected, regardless of Analytics presence
+                val visibleTabs = tabsList.filter { mask -> config.showTabs and mask != 0 }
+                val recentsIndex = visibleTabs.indexOf(TAB_CALL_HISTORY)
+                if (recentsIndex != -1 && it.position == recentsIndex) {
                     clearMissedCalls()
                 }
             }
@@ -448,7 +466,8 @@ class MainActivity : SimpleActivity() {
         val drawableId = when (position) {
             0 -> R.drawable.ic_person_vector
             1 -> R.drawable.ic_star_vector
-            else -> R.drawable.ic_clock_vector
+            2 -> R.drawable.ic_clock_vector
+            else -> R.drawable.ic_analytics_outline_vector
         }
 
         return resources.getColoredDrawableWithColor(drawableId, getProperTextColor())
@@ -458,7 +477,8 @@ class MainActivity : SimpleActivity() {
         val stringId = when (position) {
             0 -> R.string.contacts_tab
             1 -> R.string.favorites_tab
-            else -> R.string.call_history_tab
+            2 -> R.string.call_history_tab
+            else -> R.string.analytics_tab
         }
 
         return resources.getString(stringId)
@@ -509,6 +529,10 @@ class MainActivity : SimpleActivity() {
 
         if (showTabs and TAB_CALL_HISTORY > 0) {
             fragments.add(getRecentsFragment())
+        }
+
+        if (showTabs and TAB_ANALYTICS > 0) {
+            // todo: implement analytics fragment
         }
 
         return fragments
@@ -562,12 +586,12 @@ class MainActivity : SimpleActivity() {
             FAQItem(R.string.faq_1_title, R.string.faq_1_text),
             FAQItem(R.string.faq_2_title, R.string.faq_2_text),
             FAQItem(R.string.faq_3_title, R.string.faq_3_text),
-            FAQItem(R.string.faq_9_title_commons, R.string.faq_9_text_commons)
+            FAQItem(CommonsR.string.faq_9_title_commons, CommonsR.string.faq_9_text_commons)
         )
 
         if (!resources.getBoolean(R.bool.hide_google_relations)) {
-            faqItems.add(FAQItem(R.string.faq_2_title_commons, R.string.faq_2_text_commons))
-            faqItems.add(FAQItem(R.string.faq_6_title_commons, R.string.faq_6_text_commons))
+            faqItems.add(FAQItem(CommonsR.string.faq_2_title_commons, CommonsR.string.faq_2_text_commons))
+            faqItems.add(FAQItem(CommonsR.string.faq_6_title_commons, CommonsR.string.faq_6_text_commons))
         }
 
         startAboutActivity(R.string.app_name, licenses, BuildConfig.VERSION_NAME, faqItems, true)

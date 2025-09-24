@@ -92,6 +92,8 @@
     <string name="rename">Rename</string>
     <string name="renamed">Renamed</string>
     <string name="deleted">Deleted</string>
+    <string name="summary">Summary</string>
+    <string name="analysis">Analysis</string>
     <string name="proceed_with_deletion">Are you sure you want to delete this recording?</string>
     <string name="unknown_error_occurred">Unknown error occurred</string>
     <string name="more_options">More options</string>
@@ -119,15 +121,48 @@
     <string name="rejected">Rejected</string>
     <string name="missed">Missed</string>
 
-    <!-- FAQ -->
-    <string name="faq_1_title">I hear incoming calls, but the screen doesn\'t turn on. What can I do?</string>
-    <string name="faq_1_text">Such issues can have many device and system specific reasons, hard to say in general. You should look around in your device settings and make sure that the app is allowed to pop up when in background and allow displaying over other apps.</string>
-    <string name="faq_2_title">Why emergency calls don\'t work properly?</string>
-    <string name="faq_2_text">Due to system restrictions, emergency calls can only be made through your system\'s default dialer or phone app. To ensure emergency calls work properly, you need to keep the system app installed and enabled.</string>
-    <string name="faq_3_title">Why are some of my contacts missing from the app?</string>
-    <string name="faq_3_text">Fossify Phone only displays contacts that have a phone number associated with them. Contacts without a phone number are not shown in the app.</string>
-    <!--
-        Haven't found some strings? There's more at
-        https://github.com/FossifyOrg/Commons/tree/master/commons/src/main/res
-    -->
+    <!-- Tabs -->
+    <string name="analytics_tab">Analytics</string>
+
+    <!-- Analytics -->
+    <string name="sim">SIM</string>
+    <string name="sim_1">SIM 1</string>
+    <string name="sim_2">SIM 2</string>
+    <string name="both">Both</string>
+    <string name="filter">Filter</string>
+    <string name="period">Period</string>
+    <string name="customer">Customer</string>
+    <string name="analytics_graphs">Analytics</string>
+    <string name="charts_placeholder">Charts will appear here</string>
+    <string name="total_calls">Total phone calls</string>
+    <string name="total_incoming">Total incoming</string>
+    <string name="total_outgoing">Total outgoing</string>
+    <string name="total_rejected">Total rejected/missed</string>
+    <string name="missed_calls">Missed calls</string>
+    <string name="rejected_calls">Rejected calls</string>
+    <string name="never_answered_calls">Never answered calls</string>
+    <string name="unique_calls">Unique calls</string>
+    <string name="duration_format">%1$dh %2$dm %3$ds</string>
+    <string name="duration_min_sec_format">%1$dm %2$ds</string>
+    <string name="duration_sec_format">%1$ds</string>
+    <string name="chart_mode_counts">Counts</string>
+    <string name="chart_mode_duration">Duration</string>
+    <string name="period_today">Today</string>
+    <string name="period_yesterday">Yesterday</string>
+    <string name="period_week">This Week</string>
+    <string name="period_month">This Month</string>
+    <string name="period_year">This Year</string>
+    <string name="period_customer">Custom</string>
+    <string name="sim_with_label">SIM %1$d: %2$s</string>
+    <string name="select_date_range">Select date range</string>
+
+    <!-- FAQ (default English) -->
+    <string name="faq_1_title">I can hear incoming calls, but the screen does not turn on. What can I do?</string>
+    <string name="faq_1_text">This is often hard to tell as there can be many device- and OS-specific reasons. You should check your device settings and ensure the app is allowed to run in the background and appear over other apps.</string>
+    <string name="faq_2_title">I cannot see any of my contacts. What should I do?</string>
+    <string name="faq_2_text">Please ensure the app has Contacts permission granted in system settings. Also verify contact sources and filters within the app settings.</string>
+    <string name="faq_3_title">Why are notifications not showing?</string>
+    <string name="faq_3_text">Make sure notifications are enabled for the app in system settings and that battery optimizations are disabled so the app can run reliably.</string>
+
+    <!-- Note: FAQ strings are provided by Commons library, do not override here. -->
 </resources>

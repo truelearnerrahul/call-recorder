@@ -190,7 +190,7 @@ class RecordingsActivity : SimpleActivity() {
 
     private fun loadRecordings(): List<RecordingItem> {
         val root = getExternalFilesDir(Environment.DIRECTORY_MUSIC) ?: filesDir
-        val exts = setOf(".m4a", ".mp3", ".aac", ".wav", ".3gp")
+        val exts = setOf(".ogg", ".m4a", ".mp3", ".aac", ".wav", ".3gp")
         val files = root.listFiles { f ->
             f.isFile && exts.any { ext -> f.name.endsWith(ext, ignoreCase = true) }
         }?.sortedByDescending { it.lastModified() } ?: emptyList()

@@ -11,6 +11,7 @@ import android.media.MediaRecorder
 import android.os.Build
 import android.os.Environment
 import android.os.IBinder
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import org.fossify.phone.R
@@ -72,16 +73,14 @@ class CallRecordingService : Service() {
     }
 
     private fun createChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                getString(R.string.recording_notification_channel),
-                NotificationManager.IMPORTANCE_LOW
-            )
-            channel.setSound(null, null)
-            nm.createNotificationChannel(channel)
-        }
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            getString(R.string.recording_notification_channel),
+            NotificationManager.IMPORTANCE_LOW
+        )
+        channel.setSound(null, null)
+        nm.createNotificationChannel(channel)
     }
 
     private fun buildStopPendingIntent(): PendingIntent {
@@ -115,6 +114,7 @@ class CallRecordingService : Service() {
         nm.notify(NOTIF_ID, buildNotification())
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun startRecording() {
         if (recorder != null) return
         try {
