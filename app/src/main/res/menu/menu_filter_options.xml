@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/filter_today"
+            android:title="@string/period_today"
+            app:showAsAction="never" />
+
+        <item
+            android:id="@+id/filter_yesterday"
+            android:title="@string/period_yesterday"
+            app:showAsAction="never" />
+
+        <item
+            android:id="@+id/filter_this_week"
+            android:title="@string/period_week"
+            app:showAsAction="never" />
+
+        <item
+            android:id="@+id/filter_this_month"
+            android:title="@string/period_month"
+            app:showAsAction="never" />
+
+        <item
+            android:id="@+id/filter_custom"
+            android:title="@string/period_customer"
+            app:showAsAction="never" />
+    </group>
+
+</menu>

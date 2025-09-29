@@ -159,6 +159,7 @@
                         android:orientation="horizontal">
 
                         <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/tileTotalCalls"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -218,6 +219,7 @@
                         </com.google.android.material.card.MaterialCardView>
 
                         <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/tileIncomingCalls"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -284,6 +286,7 @@
                         android:orientation="horizontal">
 
                         <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/tileOutgoingCalls"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -343,6 +346,7 @@
                         </com.google.android.material.card.MaterialCardView>
 
                         <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/tileMissedCalls"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -402,6 +406,7 @@
                         android:orientation="horizontal">
 
                         <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/tileRejectedCalls"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -454,6 +459,7 @@
                         </com.google.android.material.card.MaterialCardView>
 
                         <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/tileTotalDuration"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"

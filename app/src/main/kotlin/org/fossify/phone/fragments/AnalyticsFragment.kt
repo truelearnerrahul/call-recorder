@@ -1,6 +1,7 @@
 package org.fossify.phone.fragments
 
 import android.content.Context
+import android.content.Intent
 import android.util.AttributeSet
 import android.view.View
 import android.widget.ArrayAdapter
@@ -34,6 +35,10 @@ import java.util.Date
 import java.util.Locale
 import android.animation.ValueAnimator
 import android.view.animation.DecelerateInterpolator
+import org.fossify.phone.activities.DurationDetailActivity
+import org.fossify.phone.activities.TotalCallsDetailActivity
+
+// Remove the problematic import: import androidx.core.content.ContextCompat.startActivity
 
 class AnalyticsFragment(context: Context, attributeSet: AttributeSet) :
     MyViewPagerFragment<MyViewPagerFragment.InnerBinding>(context, attributeSet) {
@@ -68,6 +73,7 @@ class AnalyticsFragment(context: Context, attributeSet: AttributeSet) :
         setupChartAppearance()
         setupChartModeToggle()
         setupSectionToggle()
+        setupTileClickListeners()
         updateRangeCaption()
         setLoading(true)
         loadAndRender()
@@ -175,6 +181,51 @@ class AnalyticsFragment(context: Context, attributeSet: AttributeSet) :
             chartMode = if (checkedId == R.id.btn_mode_counts) ChartMode.COUNTS else ChartMode.DURATION
             // re-render chart with last stats
             lastStats?.let { renderChart(it) }
+        }
+    }
+
+    private fun setupTileClickListeners() {
+        // Set up click listeners for each metric tile
+        binding.tileTotalCalls.setOnClickListener {
+            // Launch TotalCallsDetailActivity - using context.startActivity()
+            context.startActivity(Intent(context, TotalCallsDetailActivity::class.java))
+        }
+
+        binding.tileTotalDuration.setOnClickListener {
+            // Launch DurationDetailActivity
+            context.startActivity(Intent(context, DurationDetailActivity::class.java))
+        }
+
+        binding.tileOutgoingCalls.setOnClickListener {
+            // Show filtered view for outgoing calls
+            val intent = Intent(context, TotalCallsDetailActivity::class.java).apply {
+                putExtra("filter_type", "outgoing")
+            }
+            context.startActivity(intent)
+        }
+
+        binding.tileIncomingCalls.setOnClickListener {
+            // Show filtered view for incoming calls
+            val intent = Intent(context, TotalCallsDetailActivity::class.java).apply {
+                putExtra("filter_type", "incoming")
+            }
+            context.startActivity(intent)
+        }
+
+        binding.tileMissedCalls.setOnClickListener {
+            // Show filtered view for missed calls
+            val intent = Intent(context, TotalCallsDetailActivity::class.java).apply {
+                putExtra("filter_type", "missed")
+            }
+            context.startActivity(intent)
+        }
+
+        binding.tileRejectedCalls.setOnClickListener {
+            // Show filtered view for rejected calls
+            val intent = Intent(context, TotalCallsDetailActivity::class.java).apply {
+                putExtra("filter_type", "rejected")
+            }
+            context.startActivity(intent)
         }
     }
 

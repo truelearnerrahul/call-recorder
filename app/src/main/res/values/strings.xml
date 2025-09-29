@@ -16,6 +16,7 @@
     <string name="show_grouped_calls">Show grouped calls</string>
     <string name="clear_call_history">Clear call history</string>
     <string name="show_call_details">Show call details</string>
+    <string name="filter">Filter</string>
 
     <!-- Dialpad -->
     <string name="dialpad">Dialpad</string>
@@ -129,12 +130,10 @@
     <string name="sim_1">SIM 1</string>
     <string name="sim_2">SIM 2</string>
     <string name="both">Both</string>
-    <string name="filter">Filter</string>
     <string name="period">Period</string>
     <string name="customer">Customer</string>
     <string name="analytics_graphs">Analytics</string>
     <string name="charts_placeholder">Charts will appear here</string>
-    <string name="total_calls">Total phone calls</string>
     <string name="total_incoming">Total incoming</string>
     <string name="total_outgoing">Total outgoing</string>
     <string name="total_rejected">Total rejected/missed</string>
@@ -156,6 +155,36 @@
     <string name="sim_with_label">SIM %1$d: %2$s</string>
     <string name="select_date_range">Select date range</string>
 
+    <!-- Call Statistics -->
+    <string name="call_distribution">Call Distribution</string>
+    <string name="call_statistics">Call Statistics</string>
+    <string name="incoming_calls">Incoming Calls</string>
+    <string name="outgoing_calls">Outgoing Calls</string>
+    <string name="recent_calls">Recent Calls</string>
+    <string name="duration">Duration</string>
+    <string name="duration_hours_minutes">%1$dh %2$dm</string>
+    <string name="duration_minutes_seconds">%1$dm %2$ds</string>
+    <string name="duration_seconds">%1$ds</string>
+
+    <!-- Analytics Detail Pages -->
+    <string name="total_calls_detail">Total Calls Detail</string>
+    <string name="total_calls">Total Calls</string>
+    <string name="total_duration">Total Duration</string>
+    <string name="duration_analysis">Duration Analysis</string>
+    <string name="calls_summary">Calls Summary</string>
+    <string name="no_calls_found">No calls found</string>
+    <string name="no_calls_found_description">You haven\'t made any calls yet</string>
+    <string name="no_calls_with_duration">No calls with duration</string>
+    <string name="no_calls_with_duration_description">No calls have been answered yet</string>
+    <string name="average_duration">Average Duration</string>
+    <string name="longest_call">Longest Call</string>
+    <string name="calls_with_duration">Calls with Duration</string>
+    <string name="duration_distribution">Duration Distribution</string>
+    <string name="top_contacts_by_duration">Top Contacts by Duration</string>
+    <string name="call_duration">Call Duration</string>
+    <string name="total_call_duration">Total Call Duration</string>
+    <string name="export">Export</string>
+
     <!-- FAQ (default English) -->
     <string name="faq_1_title">I can hear incoming calls, but the screen does not turn on. What can I do?</string>
     <string name="faq_1_text">This is often hard to tell as there can be many device- and OS-specific reasons. You should check your device settings and ensure the app is allowed to run in the background and appear over other apps.</string>
@@ -165,4 +194,7 @@
     <string name="faq_3_text">Make sure notifications are enabled for the app in system settings and that battery optimizations are disabled so the app can run reliably.</string>
 
     <!-- Note: FAQ strings are provided by Commons library, do not override here. -->
+
+
+    <string name="no_data_to_export">No data to export</string>
 </resources>
