@@ -34,8 +34,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import android.animation.ValueAnimator
+import android.net.Uri
+import android.provider.ContactsContract
 import android.view.animation.DecelerateInterpolator
 import org.fossify.phone.activities.DurationDetailActivity
+import org.fossify.phone.activities.FilteredCallsActivity
+import org.fossify.phone.activities.Top10Activity
 import org.fossify.phone.activities.TotalCallsDetailActivity
 
 // Remove the problematic import: import androidx.core.content.ContextCompat.startActivity
@@ -191,14 +195,14 @@ class AnalyticsFragment(context: Context, attributeSet: AttributeSet) :
             context.startActivity(Intent(context, TotalCallsDetailActivity::class.java))
         }
 
-        binding.tileTotalDuration.setOnClickListener {
-            // Launch DurationDetailActivity
-            context.startActivity(Intent(context, DurationDetailActivity::class.java))
-        }
+//        binding.tileTotalDuration.setOnClickListener {
+//            // Launch DurationDetailActivity
+//            context.startActivity(Intent(context, FilteredCallsActivity::class.java))
+//        }
 
         binding.tileOutgoingCalls.setOnClickListener {
             // Show filtered view for outgoing calls
-            val intent = Intent(context, TotalCallsDetailActivity::class.java).apply {
+            val intent = Intent(context, FilteredCallsActivity::class.java).apply {
                 putExtra("filter_type", "outgoing")
             }
             context.startActivity(intent)
@@ -206,7 +210,7 @@ class AnalyticsFragment(context: Context, attributeSet: AttributeSet) :
 
         binding.tileIncomingCalls.setOnClickListener {
             // Show filtered view for incoming calls
-            val intent = Intent(context, TotalCallsDetailActivity::class.java).apply {
+            val intent = Intent(context, FilteredCallsActivity::class.java).apply {
                 putExtra("filter_type", "incoming")
             }
             context.startActivity(intent)
@@ -214,7 +218,7 @@ class AnalyticsFragment(context: Context, attributeSet: AttributeSet) :
 
         binding.tileMissedCalls.setOnClickListener {
             // Show filtered view for missed calls
-            val intent = Intent(context, TotalCallsDetailActivity::class.java).apply {
+            val intent = Intent(context, FilteredCallsActivity::class.java).apply {
                 putExtra("filter_type", "missed")
             }
             context.startActivity(intent)
@@ -222,11 +226,24 @@ class AnalyticsFragment(context: Context, attributeSet: AttributeSet) :
 
         binding.tileRejectedCalls.setOnClickListener {
             // Show filtered view for rejected calls
-            val intent = Intent(context, TotalCallsDetailActivity::class.java).apply {
+            val intent = Intent(context, FilteredCallsActivity::class.java).apply {
                 putExtra("filter_type", "rejected")
             }
             context.startActivity(intent)
         }
+
+        binding.cardTop10Frequent.setOnClickListener {
+            val intent = Intent(context, Top10Activity::class.java)
+            intent.putExtra("type", "frequent")
+            context.startActivity(intent)
+        }
+
+        binding.cardTop10Duration.setOnClickListener {
+            val intent = Intent(context, Top10Activity::class.java)
+            intent.putExtra("type", "duration")
+            context.startActivity(intent)
+        }
+
     }
 
     private fun loadAndRender() {
@@ -251,8 +268,8 @@ class AnalyticsFragment(context: Context, attributeSet: AttributeSet) :
 
                     animateTile(binding.valueMissed, lastStats?.missedCount ?: stats.missedCount, stats.missedCount)
                     animateTile(binding.valueRejected, lastStats?.rejectedCount ?: stats.rejectedCount, stats.rejectedCount)
-                    animateTile(binding.valueNeverAnswered, lastStats?.neverAnsweredCount ?: stats.neverAnsweredCount, stats.neverAnsweredCount)
-                    animateTile(binding.valueUnique, lastStats?.uniqueNumbers ?: stats.uniqueNumbers, stats.uniqueNumbers)
+//                    animateTile(binding.valueNeverAnswered, lastStats?.neverAnsweredCount ?: stats.neverAnsweredCount, stats.neverAnsweredCount)
+//                    animateTile(binding.valueUnique, lastStats?.uniqueNumbers ?: stats.uniqueNumbers, stats.uniqueNumbers)
 
                     // progress bars based on counts
                     val total = stats.totalCount.coerceAtLeast(1)
@@ -271,13 +288,16 @@ class AnalyticsFragment(context: Context, attributeSet: AttributeSet) :
         }
     }
 
+
+
+
     private fun bindAnalysisCards(calls: List<RecentCall>) {
         if (calls.isEmpty()) {
             binding.valueTopCaller.text = "-"
             binding.valueLongestCall.text = "-"
             binding.valueHighestTotalDuration.text = "-"
             binding.valueAvgDurationPerCall.text = "-"
-            binding.valueAvgDurationPerDay.text = "-"
+//            binding.valueAvgDurationPerDay.text = "-"
             return
         }
 
@@ -292,25 +312,40 @@ class AnalyticsFragment(context: Context, attributeSet: AttributeSet) :
         }
 
         // Top caller by total talk time
-        val topEntry = durationByNumber.maxByOrNull { it.value }
-        binding.valueTopCaller.text = topEntry?.key ?: "-"
+        val callsByNumber = calls.filter { it.duration > 0 }
+            .groupingBy { it.phoneNumber }
+            .eachCount()
+
+        val topCallerEntry = callsByNumber.maxByOrNull { it.value }
+        binding.valueTopCaller.text = recentsHelper.getContactName(context, topCallerEntry?.key ?: "-")
+
 
         // Longest single call
-        binding.valueLongestCall.text = if (longest > 0) formatShortDuration(longest) else "-"
+        val longestCall = calls.maxByOrNull { it.duration }
+        binding.valueLongestCall.text = if (longestCall != null && longestCall.duration > 0) {
+            "${recentsHelper.getContactName(context, longestCall.phoneNumber)} (${formatShortDuration(longestCall.duration)})"
+        } else "-"
+
 
         // Highest total call duration (contact with max summed duration)
-        binding.valueHighestTotalDuration.text = topEntry?.let { formatShortDuration(it.value) } ?: "-"
+        val durationByNumberForHighest = calls.filter { it.duration > 0 }
+            .groupBy { it.phoneNumber }
+            .mapValues { entry -> entry.value.sumOf { it.duration } }
+
+        val topDurationEntry = durationByNumberForHighest.maxByOrNull { it.value }
+        binding.valueHighestTotalDuration.text = topDurationEntry?.let {
+            "${recentsHelper.getContactName(context, it.key)} (${formatShortDuration(it.value)})"
+        } ?: "-"
 
         // Averages
         val answered = calls.filter { it.duration > 0 }
         val totalAnsweredDuration = answered.sumOf { it.duration }
-        val avgPerCall = if (answered.isNotEmpty()) totalAnsweredDuration / answered.size else 0
-        binding.valueAvgDurationPerCall.text = if (avgPerCall > 0) formatShortDuration(avgPerCall) else "-"
+        val avgDuration = if (answered.isNotEmpty()) {
+            answered.sumOf { it.duration } / answered.size
+        } else 0
 
-        // Average per day within selected period
-        val distinctDays = answered.map { dayStart(it.startTS) }.toSet().size
-        val avgPerDay = if (distinctDays > 0) totalAnsweredDuration / distinctDays else 0
-        binding.valueAvgDurationPerDay.text = if (avgPerDay > 0) formatShortDuration(avgPerDay) else "-"
+        binding.valueAvgDurationPerCall.text = if (avgDuration > 0) formatShortDuration(avgDuration) else "-"
+
     }
 
     private fun dayStart(ts: Long): Long {

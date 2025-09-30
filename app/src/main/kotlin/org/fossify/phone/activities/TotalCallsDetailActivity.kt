@@ -17,9 +17,12 @@ import org.fossify.phone.adapters.CallStatsAdapter
 import org.fossify.phone.adapters.RecentsAdapter
 import org.fossify.phone.databinding.ActivityTotalCallsDetailBinding
 import android.app.DatePickerDialog
+import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.PopupMenu
 import org.fossify.phone.extensions.areMultipleSIMsAvailable
 import org.fossify.phone.extensions.config
+import org.fossify.phone.fragments.AnalyticsFragment.PeriodFilter
 import org.fossify.phone.helpers.RecentsHelper
 import org.fossify.phone.models.CallStats
 import org.fossify.phone.models.RecentCall
@@ -49,8 +52,43 @@ class TotalCallsDetailActivity : SimpleActivity() {
         setupToolbar(binding.toolbar)
         setupNavigationIcon()
         setupAdapters()
+        setupPeriodDropdown()
         loadCalls()
     }
+
+    private fun setupPeriodDropdown() {
+        val items = listOf(
+            getString(R.string.period_today),
+            getString(R.string.period_yesterday),
+            getString(R.string.period_week),
+            getString(R.string.period_month),
+            getString(R.string.period_year),
+            getString(R.string.period_customer)
+        )
+
+        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, items)
+        binding.periodDropdown.setAdapter(adapter)
+        binding.periodDropdown.threshold = 0
+
+        binding.periodDropdown.setOnClickListener {
+            binding.periodDropdown.showDropDown()
+        }
+
+        binding.periodDropdown.setOnItemClickListener { _, _, position, _ ->
+            when (position) {
+                0 -> setFilter(FilterType.TODAY)
+                1 -> setFilter(FilterType.YESTERDAY)
+                2 -> setFilter(FilterType.THIS_WEEK)
+                3 -> setFilter(FilterType.THIS_MONTH)
+                4 -> setFilter(FilterType.THIS_MONTH) // Year filter can reuse month logic or add new FilterType
+                5 -> showCustomDateRangePicker()
+            }
+        }
+
+        // Default
+        binding.periodDropdown.setText(items.first(), false)
+    }
+
 
     private fun setupNavigationIcon() {
         binding.toolbar.setNavigationOnClickListener {
@@ -255,7 +293,8 @@ class TotalCallsDetailActivity : SimpleActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_filter -> {
-                showFilterMenu()
+                val view = findViewById<View>(R.id.action_filter)
+                showFilterMenu(view)
                 return true
             }
             android.R.id.home -> {
@@ -271,8 +310,8 @@ class TotalCallsDetailActivity : SimpleActivity() {
         return true
     }
 
-    private fun showFilterMenu() {
-        val popup = PopupMenu(this, findViewById(R.id.action_filter))
+    private fun showFilterMenu(anchor: View) {
+        val popup = PopupMenu(this, binding.toolbar.findViewById(R.id.action_filter))
         popup.menuInflater.inflate(R.menu.menu_filter_options, popup.menu)
 
         when (currentFilterType) {

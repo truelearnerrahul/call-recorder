@@ -196,6 +196,16 @@
             android:parentActivityName=".activities.MainActivity" />
 
         <activity
+            android:name=".activities.FilteredCallsActivity"
+            android:theme="@style/AppTheme"
+            android:parentActivityName=".activities.MainActivity" />
+
+        <activity
+            android:name=".activities.Top10Activity"
+            android:theme="@style/AppTheme"
+            android:parentActivityName=".activities.MainActivity" />
+
+        <activity
             android:name=".activities.DurationDetailActivity"
             android:exported="false"
             android:label="@string/duration_analysis"

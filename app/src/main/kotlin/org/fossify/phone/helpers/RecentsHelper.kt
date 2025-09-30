@@ -3,7 +3,9 @@ package org.fossify.phone.helpers
 import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
+import android.net.Uri
 import android.provider.CallLog.Calls
+import android.provider.ContactsContract
 import android.telephony.PhoneNumberUtils
 import org.fossify.commons.extensions.*
 import org.fossify.commons.helpers.*
@@ -321,5 +323,24 @@ class RecentsHelper(private val context: Context) {
                 }
             }
         }
+    }
+
+    fun getContactName(context: Context, phoneNumber: String): String {
+        val uri = Uri.withAppendedPath(
+            ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
+            Uri.encode(phoneNumber)
+        )
+        context.contentResolver.query(
+            uri,
+            arrayOf(ContactsContract.PhoneLookup.DISPLAY_NAME),
+            null,
+            null,
+            null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                return cursor.getString(0) // DISPLAY_NAME
+            }
+        }
+        return phoneNumber // fallback if not found
     }
 }

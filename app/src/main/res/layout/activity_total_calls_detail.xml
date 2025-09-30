@@ -23,11 +23,48 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16dp">
+
+            <!-- Period row -->
+            <LinearLayout
+                android:id="@+id/filter_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="@dimen/normal_margin">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter"
+                    android:paddingEnd="@dimen/normal_margin" />
+
+                <AutoCompleteTextView
+                    android:id="@+id/period_dropdown"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:inputType="none"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:hint="@string/period" />
+
+                <AutoCompleteTextView
+                    android:id="@+id/customer_dropdown"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:inputType="none"
+                    android:focusable="false"
+                    android:hint="@string/customer"
+                    android:visibility="gone" />
+            </LinearLayout>
 
             <!-- Summary Statistics -->
             <com.google.android.material.card.MaterialCardView
@@ -198,7 +235,7 @@
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:src="@drawable/ic_phone_vector"
-                    android:tint="?attr/colorOnSurfaceVariant" />
+                    app:tint="?attr/colorOnSurfaceVariant" />
 
                 <TextView
                     android:layout_width="wrap_content"

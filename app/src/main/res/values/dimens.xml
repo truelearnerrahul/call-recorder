@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Existing dimensions -->
     <dimen name="dialpad_button_size">68dp</dimen>
     <dimen name="dialpad_button_size_small">50dp</dimen>
     <dimen name="incoming_call_arrow_size">50dp</dimen>
@@ -12,8 +13,19 @@
     <dimen name="call_control_button_size">72dp</dimen>
     <dimen name="recyclerview_fab_padding">100dp</dimen>
 
+    <!-- Text sizes -->
     <dimen name="caller_name_text_size">34sp</dimen>
     <dimen name="call_status_text_size">20sp</dimen>
+    <dimen name="top10_item_name_text_size">16sp</dimen>
+    <dimen name="top10_item_value_text_size">14sp</dimen>
+
+    <!-- Spacing -->
+    <dimen name="card_margin">8dp</dimen>
+    <dimen name="card_margin_small">4dp</dimen>
+    <dimen name="padding_medium">12dp</dimen>
+    <dimen name="spacing_medium">16dp</dimen>
+    <dimen name="card_corner_radius">8dp</dimen>
+    <dimen name="card_elevation">2dp</dimen>
 
     <!-- keep these 2 values in dp to avoid scaling -->
     <dimen name="dialpad_text_size">28dp</dimen>

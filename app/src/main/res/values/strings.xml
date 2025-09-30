@@ -184,6 +184,21 @@
     <string name="call_duration">Call Duration</string>
     <string name="total_call_duration">Total Call Duration</string>
     <string name="export">Export</string>
+    
+    <!-- Top 10 Calls -->
+    <string name="no_data_available">No data available</string>
+    <string name="top_10_calls">Top 10 Calls</string>
+    <string name="top_10_frequent_calls">Top 10 Frequent Calls</string>
+    <string name="top_10_call_duration">Top 10 Call Duration</string>
+    
+    <!-- Duration Formatting -->
+    <string name="duration_minutes">%d min</string>
+
+    <!-- Plurals -->
+    <plurals name="call_count">
+        <item quantity="one">%d call</item>
+        <item quantity="other">%d calls</item>
+    </plurals>
 
     <!-- FAQ (default English) -->
     <string name="faq_1_title">I can hear incoming calls, but the screen does not turn on. What can I do?</string>

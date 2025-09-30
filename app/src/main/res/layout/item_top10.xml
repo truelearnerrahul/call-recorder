@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="@dimen/card_margin"
+    android:layout_marginVertical="@dimen/card_margin_small"
+    app:cardElevation="@dimen/card_elevation"
+    app:cardCornerRadius="@dimen/card_corner_radius">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="@dimen/padding_medium">
+
+        <TextView
+            android:id="@+id/textName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="@dimen/top10_item_name_text_size"
+            android:textStyle="bold"
+            android:textColor="?android:attr/textColorPrimary"
+            android:ellipsize="end"
+            android:maxLines="1"
+            tools:text="Contact Name" />
+
+        <TextView
+            android:id="@+id/textValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/top10_item_value_text_size"
+            android:textColor="?android:attr/textColorSecondary"
+            android:layout_marginStart="@dimen/spacing_medium"
+            tools:text="00:00" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
