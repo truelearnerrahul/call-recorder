@@ -93,9 +93,14 @@
     <string name="rename">Rename</string>
     <string name="renamed">Renamed</string>
     <string name="deleted">Deleted</string>
+    <string name="filename">Filename</string>
+    <string name="file_already_exists">A file with this name already exists</string>
+    <string name="file_renamed">File renamed successfully</string>
+    <string name="rename_failed">Failed to rename file</string>
     <string name="summary">Summary</string>
     <string name="analysis">Analysis</string>
     <string name="proceed_with_deletion">Are you sure you want to delete this recording?</string>
+    <string name="delete_failed">Failed to delete file</string>
     <string name="unknown_error_occurred">Unknown error occurred</string>
     <string name="more_options">More options</string>
 
@@ -179,11 +184,14 @@
     <string name="average_duration">Average Duration</string>
     <string name="longest_call">Longest Call</string>
     <string name="calls_with_duration">Calls with Duration</string>
+    <string name="uploading_recording">Uploading recording…</string>
     <string name="duration_distribution">Duration Distribution</string>
     <string name="top_contacts_by_duration">Top Contacts by Duration</string>
     <string name="call_duration">Call Duration</string>
     <string name="total_call_duration">Total Call Duration</string>
     <string name="export">Export</string>
+    <string name="upload">Upload</string>
+    <string name="play_pause">Play/Pause</string>
     
     <!-- Top 10 Calls -->
     <string name="no_data_available">No data available</string>

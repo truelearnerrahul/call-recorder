@@ -3,28 +3,45 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:paddingHorizontal="8dp"
+    android:paddingTop="16dp"
+    android:paddingBottom="8dp">
 
     <TextView
         android:id="@+id/toolbar_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:elevation="4dp"
+        android:fontFamily="sans-serif-medium"
+        android:paddingHorizontal="8dp"
+        android:paddingBottom="16dp"
         android:text="@string/recordings"
-        android:textAppearance="@style/TextAppearance.AppCompat.Title"
-        android:paddingBottom="8dp" />
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
+        android:textColor="?android:attr/textColorPrimary" />
 
     <TextView
         android:id="@+id/empty_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:drawablePadding="16dp"
+        android:drawableTint="?android:attr/textColorTertiary"
         android:gravity="center"
         android:padding="24dp"
-        android:text="@string/no_recordings_found" />
+        android:text="@string/no_recordings_found"
+        android:textColor="?android:attr/textColorSecondary"
+        android:textSize="16sp"
+        android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recordings_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingTop="4dp"
+        android:paddingBottom="8dp"
+        android:scrollbarStyle="outsideOverlay"
+        android:scrollbars="vertical" />
 
 </LinearLayout>
