@@ -62,7 +62,7 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix = ".debug"
+//            applicationIdSuffix = ".debug"
         }
         release {
             isMinifyEnabled = true
@@ -150,7 +150,9 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
-    
+
+    // OAuth2
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
     
     detektPlugins(libs.compose.detekt)
 }

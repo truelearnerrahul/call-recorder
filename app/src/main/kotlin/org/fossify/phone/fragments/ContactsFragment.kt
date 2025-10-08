@@ -69,6 +69,9 @@ class ContactsFragment(context: Context, attributeSet: AttributeSet) : MyViewPag
                 }
             }
         }
+
+        // Load contacts initially
+        refreshItems()
     }
 
     override fun setupColors(textColor: Int, primaryColor: Int, properPrimaryColor: Int) {
@@ -85,6 +88,12 @@ class ContactsFragment(context: Context, attributeSet: AttributeSet) : MyViewPag
         }
     }
 
+    // Implement the abstract refreshItems method from MyViewPagerFragment
+    override fun refreshItems() {
+        refreshItems(false, null)
+    }
+
+    // Keep the existing refreshItems method with parameters for internal use
     override fun refreshItems(invalidate: Boolean, callback: (() -> Unit)?) {
         val privateCursor = context?.getMyContactsCursor(favoritesOnly = false, withPhoneNumbersOnly = true)
         ContactsHelper(context).getContacts(showOnlyContactsWithNumbers = true) { contacts ->
@@ -97,7 +106,7 @@ class ContactsFragment(context: Context, attributeSet: AttributeSet) : MyViewPag
                     allContacts.sort()
                 }
             }
-            (activity as MainActivity).cacheContacts()
+            (activity as? MainActivity)?.cacheContacts()
 
             activity?.runOnUiThread {
                 gotContacts(contacts)

@@ -36,6 +36,7 @@ import org.fossify.phone.dialogs.FilterContactSourcesDialog
 import org.fossify.phone.extensions.clearMissedCalls
 import org.fossify.phone.extensions.config
 import org.fossify.phone.extensions.launchCreateNewContactIntent
+import org.fossify.phone.fragments.AnalyticsFragment
 import org.fossify.phone.fragments.ContactsFragment
 import org.fossify.phone.fragments.FavoritesFragment
 import org.fossify.phone.fragments.MyViewPagerFragment
@@ -57,6 +58,12 @@ class MainActivity : SimpleActivity() {
     private var storedFontSize = 0
     private var storedStartNameWithSurname = false
     var cachedContacts = ArrayList<Contact>()
+
+    // Store references to current fragments
+    private var currentContactsFragment: ContactsFragment? = null
+    private var currentFavoritesFragment: FavoritesFragment? = null
+    private var currentRecentsFragment: RecentsFragment? = null
+    private var currentAnalyticsFragment: MyViewPagerFragment<*>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         isMaterialActivity = true
@@ -229,6 +236,7 @@ class MainActivity : SimpleActivity() {
                     R.id.column_count -> changeColumnCount()
                     R.id.about -> launchAbout()
                     R.id.open_recordings -> startActivity(Intent(this@MainActivity, RecordingsActivity::class.java))
+                    R.id.login -> startActivity(Intent(this@MainActivity, LoginActivity::class.java))
                     else -> return@setOnMenuItemClickListener false
                 }
                 return@setOnMenuItemClickListener true
@@ -332,20 +340,20 @@ class MainActivity : SimpleActivity() {
         val showTabs = config.showTabs
         val icons = mutableListOf<Int>()
 
-        if (showTabs and TAB_CONTACTS != 0) {
-            icons.add(R.drawable.ic_person_vector)
-        }
-
-        if (showTabs and TAB_FAVORITES != 0) {
-            icons.add(R.drawable.ic_star_vector)
+        if (showTabs and TAB_ANALYTICS != 0) {
+            icons.add(R.drawable.ic_analytics_filled_vector)
         }
 
         if (showTabs and TAB_CALL_HISTORY != 0) {
             icons.add(R.drawable.ic_clock_filled_vector)
         }
 
-        if (showTabs and TAB_ANALYTICS != 0) {
-            icons.add(R.drawable.ic_analytics_filled_vector)
+        if (showTabs and TAB_FAVORITES != 0) {
+            icons.add(R.drawable.ic_star_vector)
+        }
+
+        if (showTabs and TAB_CONTACTS != 0) {
+            icons.add(R.drawable.ic_person_vector)
         }
 
         return icons
@@ -355,27 +363,27 @@ class MainActivity : SimpleActivity() {
         val showTabs = config.showTabs
         val icons = ArrayList<Int>()
 
-        if (showTabs and TAB_CONTACTS != 0) {
-            icons.add(R.drawable.ic_person_outline_vector)
-        }
-
-        if (showTabs and TAB_FAVORITES != 0) {
-            icons.add(R.drawable.ic_star_outline_vector)
+        if (showTabs and TAB_ANALYTICS != 0) {
+            icons.add(R.drawable.ic_analytics_outline_vector)
         }
 
         if (showTabs and TAB_CALL_HISTORY != 0) {
             icons.add(R.drawable.ic_clock_vector)
         }
 
-        if (showTabs and TAB_ANALYTICS != 0) {
-            icons.add(R.drawable.ic_analytics_outline_vector)
+        if (showTabs and TAB_FAVORITES != 0) {
+            icons.add(R.drawable.ic_star_outline_vector)
+        }
+
+        if (showTabs and TAB_CONTACTS != 0) {
+            icons.add(R.drawable.ic_person_outline_vector)
         }
 
         return icons
     }
 
     private fun initFragments() {
-        binding.viewPager.offscreenPageLimit = 2
+        binding.viewPager.offscreenPageLimit = 3 // Increase to keep more fragments in memory
         binding.viewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
             override fun onPageScrollStateChanged(state: Int) {}
 
@@ -387,6 +395,9 @@ class MainActivity : SimpleActivity() {
                     it?.finishActMode()
                 }
                 refreshMenuItems()
+
+                // Update current fragment references when page changes
+                updateCurrentFragmentReferences()
             }
         })
 
@@ -397,7 +408,7 @@ class MainActivity : SimpleActivity() {
 
                 // open the Recents tab if we got here by clicking a missed call notification
                 if (intent.action == Intent.ACTION_VIEW && config.showTabs and TAB_CALL_HISTORY > 0) {
-                    wantedTab = binding.mainTabsHolder.tabCount - 1
+                    wantedTab = getTabPosition(TAB_CALL_HISTORY)
                 }
 
                 binding.mainTabsHolder.getTabAt(wantedTab)?.select()
@@ -443,15 +454,13 @@ class MainActivity : SimpleActivity() {
                 updateBottomTabItemColors(it.customView, true, getSelectedTabDrawableIds()[it.position])
 
                 // Close expanded search on Analytics tab to avoid showing the search bar there
-                val isAnalyticsTab = getTabLabel(it.position) == getString(R.string.analytics_tab)
+                val isAnalyticsTab = getTabTypeAtPosition(it.position) == TAB_ANALYTICS
                 if (isAnalyticsTab && binding.mainMenu.isSearchOpen) {
                     binding.mainMenu.closeSearch()
                 }
 
                 // Clear missed calls when Recents tab is selected, regardless of Analytics presence
-                val visibleTabs = tabsList.filter { mask -> config.showTabs and mask != 0 }
-                val recentsIndex = visibleTabs.indexOf(TAB_CALL_HISTORY)
-                if (recentsIndex != -1 && it.position == recentsIndex) {
+                if (getTabTypeAtPosition(it.position) == TAB_CALL_HISTORY) {
                     clearMissedCalls()
                 }
             }
@@ -464,10 +473,11 @@ class MainActivity : SimpleActivity() {
 
     private fun getTabIcon(position: Int): Drawable {
         val drawableId = when (position) {
-            0 -> R.drawable.ic_person_vector
-            1 -> R.drawable.ic_star_vector
-            2 -> R.drawable.ic_clock_vector
-            else -> R.drawable.ic_analytics_outline_vector
+            0 -> R.drawable.ic_analytics_outline_vector  // Analytics
+            1 -> R.drawable.ic_clock_vector              // Call History
+            2 -> R.drawable.ic_star_vector               // Favorites
+            3 -> R.drawable.ic_person_vector             // Contacts
+            else -> R.drawable.ic_person_vector
         }
 
         return resources.getColoredDrawableWithColor(drawableId, getProperTextColor())
@@ -475,10 +485,11 @@ class MainActivity : SimpleActivity() {
 
     private fun getTabLabel(position: Int): String {
         val stringId = when (position) {
-            0 -> R.string.contacts_tab
-            1 -> R.string.favorites_tab
-            2 -> R.string.call_history_tab
-            else -> R.string.analytics_tab
+            0 -> R.string.analytics_tab      // Analytics
+            1 -> R.string.call_history_tab   // Call History
+            2 -> R.string.favorites_tab      // Favorites
+            3 -> R.string.contacts_tab       // Contacts
+            else -> R.string.contacts_tab
         }
 
         return resources.getString(stringId)
@@ -495,9 +506,11 @@ class MainActivity : SimpleActivity() {
                 viewPager.currentItem = if (openLastTab) config.lastUsedViewPagerPage else getDefaultTab()
                 viewPager.onGlobalLayout {
                     refreshFragments()
+                    updateCurrentFragmentReferences()
                 }
             } else {
                 refreshFragments()
+                updateCurrentFragmentReferences()
             }
         }
     }
@@ -510,67 +523,79 @@ class MainActivity : SimpleActivity() {
 
     fun refreshFragments() {
         cacheContacts()
-        getContactsFragment()?.refreshItems()
-        getFavoritesFragment()?.refreshItems()
-        getRecentsFragment()?.refreshItems()
+        // Refresh all fragments that are currently in memory
+        currentContactsFragment?.refreshItems()
+        currentFavoritesFragment?.refreshItems()
+        currentRecentsFragment?.refreshItems()
+        currentAnalyticsFragment?.refreshItems()
     }
 
     private fun getAllFragments(): ArrayList<MyViewPagerFragment<*>?> {
-        val showTabs = config.showTabs
         val fragments = arrayListOf<MyViewPagerFragment<*>?>()
-
-        if (showTabs and TAB_CONTACTS > 0) {
-            fragments.add(getContactsFragment())
-        }
-
-        if (showTabs and TAB_FAVORITES > 0) {
-            fragments.add(getFavoritesFragment())
-        }
-
-        if (showTabs and TAB_CALL_HISTORY > 0) {
-            fragments.add(getRecentsFragment())
-        }
-
-        if (showTabs and TAB_ANALYTICS > 0) {
-            // todo: implement analytics fragment
-        }
-
+        fragments.add(currentAnalyticsFragment)
+        fragments.add(currentRecentsFragment)
+        fragments.add(currentFavoritesFragment)
+        fragments.add(currentContactsFragment)
         return fragments
     }
 
-    private fun getCurrentFragment(): MyViewPagerFragment<*>? = getAllFragments().getOrNull(binding.viewPager.currentItem)
+    private fun getCurrentFragment(): MyViewPagerFragment<*>? {
+        return when (getTabTypeAtPosition(binding.viewPager.currentItem)) {
+            TAB_ANALYTICS -> currentAnalyticsFragment
+            TAB_CALL_HISTORY -> currentRecentsFragment
+            TAB_FAVORITES -> currentFavoritesFragment
+            TAB_CONTACTS -> currentContactsFragment
+            else -> null
+        }
+    }
 
-    private fun getContactsFragment(): ContactsFragment? = findViewById(R.id.contacts_fragment)
+    private fun getContactsFragment(): ContactsFragment? = currentContactsFragment
 
-    private fun getFavoritesFragment(): FavoritesFragment? = findViewById(R.id.favorites_fragment)
+    private fun getFavoritesFragment(): FavoritesFragment? = currentFavoritesFragment
 
-    private fun getRecentsFragment(): RecentsFragment? = findViewById(R.id.recents_fragment)
+    private fun getRecentsFragment(): RecentsFragment? = currentRecentsFragment
+
+    private fun getAnalyticsFragment(): MyViewPagerFragment<*>? = currentAnalyticsFragment
+
+    // Helper method to update current fragment references
+    private fun updateCurrentFragmentReferences() {
+        val currentPosition = binding.viewPager.currentItem
+        val currentView = binding.viewPager.getChildAt(currentPosition)
+
+        if (currentView is MyViewPagerFragment<*>) {
+            when (getTabTypeAtPosition(currentPosition)) {
+                TAB_CONTACTS -> currentContactsFragment = currentView as? ContactsFragment
+                TAB_FAVORITES -> currentFavoritesFragment = currentView as? FavoritesFragment
+                TAB_CALL_HISTORY -> currentRecentsFragment = currentView as? RecentsFragment
+                TAB_ANALYTICS -> currentAnalyticsFragment = currentView as? AnalyticsFragment
+            }
+        }
+    }
+
+    // Helper method to get tab type at position
+    private fun getTabTypeAtPosition(position: Int): Int {
+        val showTabs = config.showTabs
+        val visibleTabs = tabsList.filter { showTabs and it != 0 }
+        return if (position < visibleTabs.size) visibleTabs[position] else TAB_CONTACTS
+    }
+
+    // Helper method to get position of a tab type
+    private fun getTabPosition(tabType: Int): Int {
+        val showTabs = config.showTabs
+        val visibleTabs = tabsList.filter { showTabs and it != 0 }
+        return visibleTabs.indexOf(tabType).coerceAtLeast(0)
+    }
 
     private fun getDefaultTab(): Int {
         val showTabsMask = config.showTabs
+        val visibleTabs = tabsList.filter { showTabsMask and it != 0 }
+
         return when (config.defaultTab) {
-            TAB_LAST_USED -> if (config.lastUsedViewPagerPage < binding.mainTabsHolder.tabCount) config.lastUsedViewPagerPage else 0
-            TAB_CONTACTS -> 0
-            TAB_FAVORITES -> if (showTabsMask and TAB_CONTACTS > 0) 1 else 0
-            else -> {
-                if (showTabsMask and TAB_CALL_HISTORY > 0) {
-                    if (showTabsMask and TAB_CONTACTS > 0) {
-                        if (showTabsMask and TAB_FAVORITES > 0) {
-                            2
-                        } else {
-                            1
-                        }
-                    } else {
-                        if (showTabsMask and TAB_FAVORITES > 0) {
-                            1
-                        } else {
-                            0
-                        }
-                    }
-                } else {
-                    0
-                }
-            }
+            TAB_LAST_USED -> if (config.lastUsedViewPagerPage < visibleTabs.size) config.lastUsedViewPagerPage else 0
+            TAB_CONTACTS -> getTabPosition(TAB_CONTACTS)
+            TAB_FAVORITES -> getTabPosition(TAB_FAVORITES)
+            TAB_CALL_HISTORY -> getTabPosition(TAB_CALL_HISTORY)
+            else -> 0
         }
     }
 

@@ -20,6 +20,7 @@ import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.components.AxisBase
 import org.fossify.commons.extensions.*
 import org.fossify.commons.helpers.ensureBackgroundThread
+import org.fossify.commons.helpers.PERMISSION_READ_CALL_LOG
 import org.fossify.phone.R
 import org.fossify.phone.activities.SimpleActivity
 import org.fossify.phone.databinding.FragmentAnalyticsBinding
@@ -34,15 +35,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import android.animation.ValueAnimator
-import android.net.Uri
-import android.provider.ContactsContract
 import android.view.animation.DecelerateInterpolator
-import org.fossify.phone.activities.DurationDetailActivity
 import org.fossify.phone.activities.FilteredCallsActivity
 import org.fossify.phone.activities.Top10Activity
 import org.fossify.phone.activities.TotalCallsDetailActivity
-
-// Remove the problematic import: import androidx.core.content.ContextCompat.startActivity
 
 class AnalyticsFragment(context: Context, attributeSet: AttributeSet) :
     MyViewPagerFragment<MyViewPagerFragment.InnerBinding>(context, attributeSet) {
@@ -70,7 +66,13 @@ class AnalyticsFragment(context: Context, attributeSet: AttributeSet) :
         }
     }
 
+    override fun refreshItems() {
+        setLoading(true)
+        loadAndRender()
+    }
+
     override fun setupFragment() {
+        setupPermissionPlaceholder()
         setupSimChips()
         setupPeriodDropdown()
         setupColors(activity!!.getProperTextColor(), activity!!.getProperPrimaryColor(), activity!!.getProperPrimaryColor())
@@ -79,18 +81,78 @@ class AnalyticsFragment(context: Context, attributeSet: AttributeSet) :
         setupSectionToggle()
         setupTileClickListeners()
         updateRangeCaption()
-        setLoading(true)
-        loadAndRender()
+
+        // Load data initially if permission is granted
+        if (context.hasPermission(PERMISSION_READ_CALL_LOG)) {
+            setLoading(true)
+            loadAndRender()
+        } else {
+            showPermissionPlaceholder()
+        }
     }
 
     override fun setupColors(textColor: Int, primaryColor: Int, properPrimaryColor: Int) {
         // apply colors to titles if needed
-        // Using default theming; nothing special required here
+        binding.analyticsPlaceholder.setTextColor(textColor)
+        binding.analyticsPlaceholder2.setTextColor(properPrimaryColor)
     }
 
     override fun onSearchClosed() { /* no-op */ }
 
     override fun onSearchQueryChanged(text: String) { /* no-op */ }
+
+    private fun setupPermissionPlaceholder() {
+        val placeholderResId = if (context.hasPermission(PERMISSION_READ_CALL_LOG)) {
+            R.string.no_data_available
+        } else {
+            R.string.could_not_access_the_call_analytics
+        }
+
+        binding.analyticsPlaceholder.text = context.getString(placeholderResId)
+        binding.analyticsPlaceholder2.apply {
+            text = if (context.hasPermission(PERMISSION_READ_CALL_LOG)) {
+                context.getString(R.string.loading)
+            } else {
+                context.getString(R.string.request_access)
+            }
+            underlineText()
+            setOnClickListener {
+                if (context.hasPermission(PERMISSION_READ_CALL_LOG)) {
+                    refreshItems()
+                } else {
+                    requestCallLogPermission()
+                }
+            }
+        }
+    }
+
+    private fun showPermissionPlaceholder() {
+        activity?.runOnUiThread {
+            binding.analyticsPlaceholder.beVisible()
+            binding.analyticsPlaceholder2.beVisible()
+            binding.contentContainer.beGone()
+        }
+    }
+
+    private fun hidePermissionPlaceholder() {
+        activity?.runOnUiThread {
+            binding.analyticsPlaceholder.beGone()
+            binding.analyticsPlaceholder2.beGone()
+            binding.contentContainer.beVisible()
+        }
+    }
+
+    private fun requestCallLogPermission() {
+        activity?.handlePermission(PERMISSION_READ_CALL_LOG) {
+            if (it) {
+                binding.analyticsPlaceholder.text = context.getString(R.string.no_data_available)
+                binding.analyticsPlaceholder2.text = context.getString(R.string.loading)
+                hidePermissionPlaceholder()
+                setLoading(true)
+                loadAndRender()
+            }
+        }
+    }
 
     private fun setupSimChips() {
         val group: ChipGroup = binding.simChipGroup
@@ -191,62 +253,89 @@ class AnalyticsFragment(context: Context, attributeSet: AttributeSet) :
     private fun setupTileClickListeners() {
         // Set up click listeners for each metric tile
         binding.tileTotalCalls.setOnClickListener {
-            // Launch TotalCallsDetailActivity - using context.startActivity()
-            context.startActivity(Intent(context, TotalCallsDetailActivity::class.java))
+            if (context.hasPermission(PERMISSION_READ_CALL_LOG)) {
+                context.startActivity(Intent(context, TotalCallsDetailActivity::class.java))
+            } else {
+                requestCallLogPermission()
+            }
         }
 
-//        binding.tileTotalDuration.setOnClickListener {
-//            // Launch DurationDetailActivity
-//            context.startActivity(Intent(context, FilteredCallsActivity::class.java))
-//        }
-
         binding.tileOutgoingCalls.setOnClickListener {
-            // Show filtered view for outgoing calls
-            val intent = Intent(context, FilteredCallsActivity::class.java).apply {
-                putExtra("filter_type", "outgoing")
+            if (context.hasPermission(PERMISSION_READ_CALL_LOG)) {
+                val intent = Intent(context, FilteredCallsActivity::class.java).apply {
+                    putExtra("filter_type", "outgoing")
+                }
+                context.startActivity(intent)
+            } else {
+                requestCallLogPermission()
             }
-            context.startActivity(intent)
         }
 
         binding.tileIncomingCalls.setOnClickListener {
-            // Show filtered view for incoming calls
-            val intent = Intent(context, FilteredCallsActivity::class.java).apply {
-                putExtra("filter_type", "incoming")
+            if (context.hasPermission(PERMISSION_READ_CALL_LOG)) {
+                val intent = Intent(context, FilteredCallsActivity::class.java).apply {
+                    putExtra("filter_type", "incoming")
+                }
+                context.startActivity(intent)
+            } else {
+                requestCallLogPermission()
             }
-            context.startActivity(intent)
         }
 
         binding.tileMissedCalls.setOnClickListener {
-            // Show filtered view for missed calls
-            val intent = Intent(context, FilteredCallsActivity::class.java).apply {
-                putExtra("filter_type", "missed")
+            if (context.hasPermission(PERMISSION_READ_CALL_LOG)) {
+                val intent = Intent(context, FilteredCallsActivity::class.java).apply {
+                    putExtra("filter_type", "missed")
+                }
+                context.startActivity(intent)
+            } else {
+                requestCallLogPermission()
             }
-            context.startActivity(intent)
         }
 
         binding.tileRejectedCalls.setOnClickListener {
-            // Show filtered view for rejected calls
-            val intent = Intent(context, FilteredCallsActivity::class.java).apply {
-                putExtra("filter_type", "rejected")
+            if (context.hasPermission(PERMISSION_READ_CALL_LOG)) {
+                val intent = Intent(context, FilteredCallsActivity::class.java).apply {
+                    putExtra("filter_type", "rejected")
+                }
+                context.startActivity(intent)
+            } else {
+                requestCallLogPermission()
             }
-            context.startActivity(intent)
         }
 
         binding.cardTop10Frequent.setOnClickListener {
-            val intent = Intent(context, Top10Activity::class.java)
-            intent.putExtra("type", "frequent")
-            context.startActivity(intent)
+            if (context.hasPermission(PERMISSION_READ_CALL_LOG)) {
+                val intent = Intent(context, Top10Activity::class.java)
+                intent.putExtra("type", "frequent")
+                context.startActivity(intent)
+            } else {
+                requestCallLogPermission()
+            }
         }
 
         binding.cardTop10Duration.setOnClickListener {
-            val intent = Intent(context, Top10Activity::class.java)
-            intent.putExtra("type", "duration")
-            context.startActivity(intent)
+            if (context.hasPermission(PERMISSION_READ_CALL_LOG)) {
+                val intent = Intent(context, Top10Activity::class.java)
+                intent.putExtra("type", "duration")
+                context.startActivity(intent)
+            } else {
+                requestCallLogPermission()
+            }
         }
-
     }
 
     private fun loadAndRender() {
+        // Check permission first
+        if (!context.hasPermission(PERMISSION_READ_CALL_LOG)) {
+            showPermissionPlaceholder()
+            setLoading(false)
+            return
+        }
+
+        // Hide permission placeholder and show content
+        hidePermissionPlaceholder()
+
         // show loader and dim content while (re)loading
         setLoading(true)
         ensureBackgroundThread {
@@ -268,8 +357,6 @@ class AnalyticsFragment(context: Context, attributeSet: AttributeSet) :
 
                     animateTile(binding.valueMissed, lastStats?.missedCount ?: stats.missedCount, stats.missedCount)
                     animateTile(binding.valueRejected, lastStats?.rejectedCount ?: stats.rejectedCount, stats.rejectedCount)
-//                    animateTile(binding.valueNeverAnswered, lastStats?.neverAnsweredCount ?: stats.neverAnsweredCount, stats.neverAnsweredCount)
-//                    animateTile(binding.valueUnique, lastStats?.uniqueNumbers ?: stats.uniqueNumbers, stats.uniqueNumbers)
 
                     // progress bars based on counts
                     val total = stats.totalCount.coerceAtLeast(1)
@@ -288,16 +375,12 @@ class AnalyticsFragment(context: Context, attributeSet: AttributeSet) :
         }
     }
 
-
-
-
     private fun bindAnalysisCards(calls: List<RecentCall>) {
         if (calls.isEmpty()) {
             binding.valueTopCaller.text = "-"
             binding.valueLongestCall.text = "-"
             binding.valueHighestTotalDuration.text = "-"
             binding.valueAvgDurationPerCall.text = "-"
-//            binding.valueAvgDurationPerDay.text = "-"
             return
         }
 
@@ -319,13 +402,11 @@ class AnalyticsFragment(context: Context, attributeSet: AttributeSet) :
         val topCallerEntry = callsByNumber.maxByOrNull { it.value }
         binding.valueTopCaller.text = recentsHelper.getContactName(context, topCallerEntry?.key ?: "-")
 
-
         // Longest single call
         val longestCall = calls.maxByOrNull { it.duration }
         binding.valueLongestCall.text = if (longestCall != null && longestCall.duration > 0) {
             "${recentsHelper.getContactName(context, longestCall.phoneNumber)} (${formatShortDuration(longestCall.duration)})"
         } else "-"
-
 
         // Highest total call duration (contact with max summed duration)
         val durationByNumberForHighest = calls.filter { it.duration > 0 }
@@ -345,17 +426,6 @@ class AnalyticsFragment(context: Context, attributeSet: AttributeSet) :
         } else 0
 
         binding.valueAvgDurationPerCall.text = if (avgDuration > 0) formatShortDuration(avgDuration) else "-"
-
-    }
-
-    private fun dayStart(ts: Long): Long {
-        val cal = java.util.Calendar.getInstance()
-        cal.timeInMillis = ts
-        cal.set(java.util.Calendar.HOUR_OF_DAY, 0)
-        cal.set(java.util.Calendar.MINUTE, 0)
-        cal.set(java.util.Calendar.SECOND, 0)
-        cal.set(java.util.Calendar.MILLISECOND, 0)
-        return cal.timeInMillis
     }
 
     private fun setTile(textView: TextView, value: Int) {

@@ -71,6 +71,8 @@ abstract class MyViewPagerFragment<BINDING : MyViewPagerFragment.InnerBinding>(c
 
     abstract fun onSearchQueryChanged(text: String)
 
+    abstract fun refreshItems()
+
     interface InnerBinding {
         val fragmentList: MyRecyclerView?
         val recentsList: MyRecyclerView?

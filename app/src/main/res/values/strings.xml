@@ -159,6 +159,8 @@
     <string name="period_customer">Custom</string>
     <string name="sim_with_label">SIM %1$d: %2$s</string>
     <string name="select_date_range">Select date range</string>
+    <string name="could_not_access_the_call_analytics">Could not access the call analytics</string>
+
 
     <!-- Call Statistics -->
     <string name="call_distribution">Call Distribution</string>
@@ -220,4 +222,37 @@
 
 
     <string name="no_data_to_export">No data to export</string>
+
+
+    <!-- Auth -->
+    <string name="login">Login</string>
+    <string name="signup">Sign Up</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="create_account">Create Account</string>
+    <string name="already_have_account">Already have an account?</string>
+    <string name="dont_have_account">Don\'t have an account?</string>
+    <string name="login_failed">Login failed</string>
+    <string name="signup_failed">Signup failed</string>
+    <string name="invalid_credentials">Invalid email or password</string>
+    <string name="email_already_exists">Email already exists</string>
+    <string name="login_successful">Login successful</string>
+    <string name="signup_successful">Signup successful</string>
+    <string name="please_fill_all_fields">Please fill all fields</string>
+    <string name="passwords_do_not_match">Passwords do not match</string>
+    <string name="logging_in">Logging in...</string>
+    <string name="creating_account">Creating account...</string>
+    <string name="invalid_email">Please enter a valid email address</string>
+    <string name="welcome_back">Welcome Back</string>
+    <string name="sign_in_to_continue">Sign in to continue</string>
+    <string name="or_continue_with">Or continue with</string>
+    <string name="join_us_today">Join us today</string>
+    <string name="sign_in_with_google">Continue with Google</string>
+    <string name="sign_up_with_google">Sign up with Google</string>
+
 </resources>

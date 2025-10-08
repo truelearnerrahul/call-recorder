@@ -47,13 +47,25 @@ class RecentsFragment(
 
         binding.recentsPlaceholder.text = context.getString(placeholderResId)
         binding.recentsPlaceholder2.apply {
+            text = if (context.hasPermission(PERMISSION_READ_CALL_LOG)) {
+                context.getString(R.string.loading)
+            } else {
+                context.getString(R.string.request_access)
+            }
             underlineText()
             setOnClickListener {
-                requestCallLogPermission()
+                if (context.hasPermission(PERMISSION_READ_CALL_LOG)) {
+                    refreshItems()
+                } else {
+                    requestCallLogPermission()
+                }
             }
         }
 
         setupFilterChips()
+
+        // Load data initially
+        refreshItems()
     }
 
     override fun setupColors(textColor: Int, primaryColor: Int, properPrimaryColor: Int) {
@@ -73,7 +85,12 @@ class RecentsFragment(
 
         refreshCallLog(loadAll = false) {
             refreshCallLog(loadAll = true)
+            callback?.invoke()
         }
+    }
+
+    override fun refreshItems() {
+        refreshItems(false, null)
     }
 
     override fun onSearchClosed() {
@@ -119,78 +136,87 @@ class RecentsFragment(
         activity?.handlePermission(PERMISSION_READ_CALL_LOG) {
             if (it) {
                 binding.recentsPlaceholder.text = context.getString(R.string.no_previous_calls)
-                binding.recentsPlaceholder2.beGone()
-                refreshCallLog()
+                binding.recentsPlaceholder2.text = context.getString(R.string.loading)
+                refreshItems()
             }
         }
     }
 
     private fun showOrHidePlaceholder(show: Boolean) {
-        if (show && !binding.progressIndicator.isVisible()) {
-            binding.recentsPlaceholder.beVisible()
-        } else {
-            binding.recentsPlaceholder.beGone()
+        activity?.runOnUiThread {
+            if (show && !binding.progressIndicator.isVisible()) {
+                binding.recentsPlaceholder.beVisible()
+                binding.recentsPlaceholder2.beVisible()
+            } else {
+                binding.recentsPlaceholder.beGone()
+                binding.recentsPlaceholder2.beGone()
+            }
         }
     }
 
     private fun gotRecents(recents: List<CallLogItem>) {
-        binding.progressIndicator.hide()
-        if (recents.isEmpty()) {
-            binding.apply {
-                showOrHidePlaceholder(true)
-                recentsPlaceholder2.beGoneIf(context.hasPermission(PERMISSION_READ_CALL_LOG))
-                recentsList.beGone()
-            }
-        } else {
-            binding.apply {
-                showOrHidePlaceholder(false)
-                recentsPlaceholder2.beGone()
-                recentsList.beVisible()
-            }
-
-            if (binding.recentsList.adapter == null) {
-                recentsAdapter = RecentCallsAdapter(
-                    activity = activity as SimpleActivity,
-                    recyclerView = binding.recentsList,
-                    refreshItemsListener = this,
-                    showOverflowMenu = true,
-                    itemDelete = { deleted ->
-                        allRecentCalls = allRecentCalls.filter { it !in deleted }
-                    },
-                    itemClick = {
-                        val recentCall = it as RecentCall
-                        activity?.startCallWithConfirmationCheck(recentCall.phoneNumber, recentCall.name)
-                    },
-                    profileIconClick = {
-                        val contact = findContactByCall(it as RecentCall)
-                        if (contact != null) {
-                            activity?.startContactDetailsIntent(contact)
-                        }
-                    }
-                )
-
-                binding.recentsList.adapter = recentsAdapter
-                recentsAdapter?.updateItems(recents)
-
-                if (context.areSystemAnimationsEnabled) {
-                    binding.recentsList.scheduleLayoutAnimation()
-                }
-
-                binding.recentsList.endlessScrollListener = object : MyRecyclerView.EndlessScrollListener {
-                    override fun updateTop() = Unit
-                    override fun updateBottom() = refreshCallLog()
+        activity?.runOnUiThread {
+            binding.progressIndicator.hide()
+            if (recents.isEmpty()) {
+                binding.apply {
+                    showOrHidePlaceholder(true)
+                    recentsList.beGone()
                 }
             } else {
-                recentsAdapter?.updateItems(recents)
+                binding.apply {
+                    showOrHidePlaceholder(false)
+                    recentsList.beVisible()
+                }
+
+                if (binding.recentsList.adapter == null) {
+                    recentsAdapter = RecentCallsAdapter(
+                        activity = activity as SimpleActivity,
+                        recyclerView = binding.recentsList,
+                        refreshItemsListener = this,
+                        showOverflowMenu = true,
+                        itemDelete = { deleted ->
+                            allRecentCalls = allRecentCalls.filter { it !in deleted }
+                        },
+                        itemClick = {
+                            val recentCall = it as RecentCall
+                            activity?.startCallWithConfirmationCheck(recentCall.phoneNumber, recentCall.name)
+                        },
+                        profileIconClick = {
+                            val contact = findContactByCall(it as RecentCall)
+                            if (contact != null) {
+                                activity?.startContactDetailsIntent(contact)
+                            }
+                        }
+                    )
+
+                    binding.recentsList.adapter = recentsAdapter
+                    recentsAdapter?.updateItems(recents)
+
+                    if (context.areSystemAnimationsEnabled) {
+                        binding.recentsList.scheduleLayoutAnimation()
+                    }
+
+                    binding.recentsList.endlessScrollListener = object : MyRecyclerView.EndlessScrollListener {
+                        override fun updateTop() = Unit
+                        override fun updateBottom() = refreshCallLog()
+                    }
+                } else {
+                    recentsAdapter?.updateItems(recents)
+                }
             }
         }
     }
 
     private fun refreshCallLog(loadAll: Boolean = false, callback: (() -> Unit)? = null) {
+        // Show loading indicator on UI thread
+        activity?.runOnUiThread {
+            binding.progressIndicator.show()
+        }
+
         getRecentCalls(loadAll) {
             allRecentCalls = it
             if (searchQuery.isNullOrEmpty()) {
-                activity?.runOnUiThread { gotRecents(it) }
+                gotRecents(it)
             } else {
                 updateSearchResult()
             }
@@ -263,14 +289,6 @@ class RecentsFragment(
             Calls.MISSED_TYPE -> calls.filter { it.type == Calls.MISSED_TYPE }
             else -> calls
         }
-    }
-
-    private fun applyGroupingAndFilters(calls: List<RecentCall>) : List<CallLogItem> {
-        var result: List<RecentCall> = calls
-        result = filterByType(result)
-        var grouped: List<CallLogItem> = emptyList()
-        prepareCallLog(result) { grouped = it }
-        return grouped
     }
 
     private fun setupFilterChips() {
@@ -346,6 +364,8 @@ class RecentsFragment(
     }
 
     private fun findContactByCall(recentCall: RecentCall): Contact? {
-        return (activity as MainActivity).cachedContacts.find { it.name == recentCall.name && it.doesHavePhoneNumber(recentCall.phoneNumber) }
+        return (activity as? MainActivity)?.cachedContacts?.find {
+            it.doesHavePhoneNumber(recentCall.phoneNumber)
+        }
     }
 }

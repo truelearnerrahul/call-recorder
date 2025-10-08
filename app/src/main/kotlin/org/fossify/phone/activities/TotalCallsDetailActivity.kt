@@ -241,7 +241,7 @@ class TotalCallsDetailActivity : SimpleActivity() {
             isHighlightPerTapEnabled = true
             animateY(1400, Easing.EaseInOutQuad)
             legend.isEnabled = false
-            setEntryLabelColor(Color.BLACK)
+            setEntryLabelColor(Color.WHITE)
             setEntryLabelTextSize(12f)
 
             val entries = mutableListOf<PieEntry>()

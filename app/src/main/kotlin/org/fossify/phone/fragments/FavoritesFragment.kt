@@ -53,6 +53,7 @@ class FavoritesFragment(context: Context, attributeSet: AttributeSet) : MyViewPa
 
         binding.fragmentPlaceholder.text = context.getString(placeholderResId)
         binding.fragmentPlaceholder2.beGone()
+        refreshItems()
     }
 
     override fun setupColors(textColor: Int, primaryColor: Int, properPrimaryColor: Int) {
@@ -95,6 +96,10 @@ class FavoritesFragment(context: Context, attributeSet: AttributeSet) : MyViewPa
                 callback?.invoke()
             }
         }
+    }
+
+    override fun refreshItems() {
+        refreshItems(false, null)
     }
 
     private fun gotContacts(contacts: ArrayList<Contact>) {

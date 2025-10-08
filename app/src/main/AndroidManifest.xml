@@ -205,15 +205,24 @@
             android:parentActivityName=".activities.MainActivity" />
 
         <activity
-            android:name=".activities.Top10Activity"
-            android:theme="@style/AppTheme"
-            android:parentActivityName=".activities.MainActivity" />
-
-        <activity
             android:name=".activities.DurationDetailActivity"
             android:exported="false"
             android:label="@string/duration_analysis"
             android:parentActivityName=".activities.MainActivity" />
+
+        <activity
+            android:name=".activities.LoginActivity"
+            android:exported="false"
+            android:label="@string/login"
+            android:parentActivityName=".activities.MainActivity"
+            android:theme="@style/AppTheme" />
+
+        <activity
+            android:name=".activities.SignupActivity"
+            android:exported="false"
+            android:label="@string/signup"
+            android:parentActivityName=".activities.MainActivity"
+            android:theme="@style/AppTheme" />
 
         <service
             android:name=".services.CallService"

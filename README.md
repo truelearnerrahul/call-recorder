@@ -32,3 +32,10 @@ Download the Fossify Phone App now and step into a mobile world where privacy se
 <img alt="App image" src="fastlane/metadata/android/en-US/images/phoneScreenshots/2_en-US.png" width="30%">
 <img alt="App image" src="fastlane/metadata/android/en-US/images/phoneScreenshots/3_en-US.png" width="30%">
 </div>
+
+# To find the sha sha256
+# For debug build
+keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
+
+# For release build
+keytool -list -v -keystore your-release-keystore.jks -alias your-alias

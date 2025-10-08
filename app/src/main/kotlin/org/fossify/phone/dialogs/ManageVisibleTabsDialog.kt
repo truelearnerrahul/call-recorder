@@ -7,6 +7,7 @@ import org.fossify.commons.extensions.viewBinding
 import org.fossify.commons.helpers.TAB_CALL_HISTORY
 import org.fossify.commons.helpers.TAB_CONTACTS
 import org.fossify.commons.helpers.TAB_FAVORITES
+import org.fossify.phone.helpers.TAB_ANALYTICS
 import org.fossify.commons.views.MyAppCompatCheckbox
 import org.fossify.phone.R
 import org.fossify.phone.databinding.DialogManageVisibleTabsBinding
@@ -19,6 +20,7 @@ class ManageVisibleTabsDialog(val activity: BaseSimpleActivity) {
 
     init {
         tabs.apply {
+            put(TAB_ANALYTICS, R.id.manage_visible_tabs_analytics)
             put(TAB_CONTACTS, R.id.manage_visible_tabs_contacts)
             put(TAB_FAVORITES, R.id.manage_visible_tabs_favorites)
             put(TAB_CALL_HISTORY, R.id.manage_visible_tabs_call_history)

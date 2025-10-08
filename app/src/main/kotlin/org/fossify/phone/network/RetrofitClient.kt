@@ -16,8 +16,12 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
     // For Android Emulator, use 10.0.2.2 to access localhost
-    private const val BASE_URL = "http://10.202.123.46:8000/"  // Keep trailing slash
+    private const val BASE_URL = "http://10.49.18.46:8000/"  // Keep trailing slash
     private var apiService: ApiService? = null
+
+    fun getApiService(): ApiService {
+        return getClient()
+    }
 
     private fun getClient(): ApiService {
         if (apiService == null) {

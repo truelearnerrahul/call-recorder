@@ -21,4 +21,9 @@
         <item name="android:layout_centerHorizontal">true</item>
     </style>
 
+    <style name="PieChartStyle" parent="@android:style/Widget">
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
 </resources>
