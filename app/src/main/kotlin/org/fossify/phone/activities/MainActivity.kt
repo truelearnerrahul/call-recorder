@@ -1,7 +1,6 @@
 package org.fossify.phone.activities
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.content.res.Configuration
@@ -11,6 +10,7 @@ import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.provider.Settings
+import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -41,6 +41,8 @@ import org.fossify.phone.fragments.ContactsFragment
 import org.fossify.phone.fragments.FavoritesFragment
 import org.fossify.phone.fragments.MyViewPagerFragment
 import org.fossify.phone.fragments.RecentsFragment
+import org.fossify.phone.helpers.AuthHelper
+import org.fossify.phone.helpers.GoogleSignInHelper
 import org.fossify.phone.helpers.OPEN_DIAL_PAD_AT_LAUNCH
 import org.fossify.phone.helpers.RecentsHelper
 import org.fossify.phone.helpers.TAB_ANALYTICS
@@ -65,11 +67,15 @@ class MainActivity : SimpleActivity() {
     private var currentRecentsFragment: RecentsFragment? = null
     private var currentAnalyticsFragment: MyViewPagerFragment<*>? = null
 
+    private lateinit var googleSignInHelper: GoogleSignInHelper
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         isMaterialActivity = true
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         appLaunched(BuildConfig.APPLICATION_ID)
+        setupGoogleSignIn()
         setupOptionsMenu()
         refreshMenuItems()
         updateMaterialActivityViews(binding.mainCoordinator, binding.mainHolder, useTransparentNavigation = false, useTopSearchMenu = true)
@@ -124,6 +130,7 @@ class MainActivity : SimpleActivity() {
 
         updateTextColors(binding.mainHolder)
         setupTabColors()
+        refreshMenuItems() // Ensure menu reflects current auth state
 
         getAllFragments().forEach {
             it?.setupColors(getProperTextColor(), getProperPrimaryColor(), getProperPrimaryColor())
@@ -165,7 +172,7 @@ class MainActivity : SimpleActivity() {
         // we don't really care about the result, the app can work without being the default Dialer too
         if (requestCode == REQUEST_CODE_SET_DEFAULT_DIALER) {
             checkContactPermissions()
-        } else if (requestCode == REQUEST_CODE_SET_DEFAULT_CALLER_ID && resultCode != Activity.RESULT_OK) {
+        } else if (requestCode == REQUEST_CODE_SET_DEFAULT_CALLER_ID && resultCode != RESULT_OK) {
             toast(R.string.must_make_default_caller_id_app, length = Toast.LENGTH_LONG)
             baseConfig.blockUnknownNumbers = false
             baseConfig.blockHiddenNumbers = false
@@ -205,6 +212,12 @@ class MainActivity : SimpleActivity() {
             findItem(R.id.change_view_type).isVisible = currentFragment == getFavoritesFragment()
             findItem(R.id.column_count).isVisible = currentFragment == getFavoritesFragment() && config.viewType == VIEW_TYPE_GRID
             findItem(R.id.more_apps_from_us).isVisible = !resources.getBoolean(R.bool.hide_google_relations)
+
+            // Show/hide login/logout buttons based on authentication state
+            findItem(R.id.login).isVisible = !isUserAuthenticated()
+            findItem(R.id.logout).isVisible = isUserAuthenticated()
+            findItem(R.id.open_recordings).isVisible = isUserAuthenticated()
+
         }
     }
 
@@ -237,6 +250,7 @@ class MainActivity : SimpleActivity() {
                     R.id.about -> launchAbout()
                     R.id.open_recordings -> startActivity(Intent(this@MainActivity, RecordingsActivity::class.java))
                     R.id.login -> startActivity(Intent(this@MainActivity, LoginActivity::class.java))
+                    R.id.logout -> logout()
                     else -> return@setOnMenuItemClickListener false
                 }
                 return@setOnMenuItemClickListener true
@@ -336,6 +350,20 @@ class MainActivity : SimpleActivity() {
 
     private fun getInactiveTabIndexes(activeIndex: Int) = (0 until binding.mainTabsHolder.tabCount).filter { it != activeIndex }
 
+    private fun setupGoogleSignIn() {
+        googleSignInHelper = GoogleSignInHelper(
+            context = this,
+            onSuccess = { msg ->
+                Log.d("MainActivity", msg)
+            },
+            onError = { error ->
+                Log.e("MainActivity", "Google Sign out error: $error")
+                runOnUiThread {
+                    Toast.makeText(this, error, Toast.LENGTH_LONG).show()
+                }
+            }
+        )
+    }
     private fun getSelectedTabDrawableIds(): List<Int> {
         val showTabs = config.showTabs
         val icons = mutableListOf<Int>()
@@ -524,16 +552,12 @@ class MainActivity : SimpleActivity() {
     fun refreshFragments() {
         cacheContacts()
         // Refresh all fragments that are currently in memory
-        currentContactsFragment?.refreshItems()
-        currentFavoritesFragment?.refreshItems()
-        currentRecentsFragment?.refreshItems()
         currentAnalyticsFragment?.refreshItems()
     }
 
     private fun getAllFragments(): ArrayList<MyViewPagerFragment<*>?> {
         val fragments = arrayListOf<MyViewPagerFragment<*>?>()
         fragments.add(currentAnalyticsFragment)
-        fragments.add(currentRecentsFragment)
         fragments.add(currentFavoritesFragment)
         fragments.add(currentContactsFragment)
         return fragments
@@ -677,6 +701,21 @@ class MainActivity : SimpleActivity() {
             } catch (ignored: Exception) {
             }
         }
+    }
+
+    private fun isUserAuthenticated(): Boolean {
+        return AuthHelper.isUserAuthenticated(this)
+    }
+
+    private fun logout() {
+        AuthHelper.logout(this)
+        googleSignInHelper.signOut()
+        toast("Logged out successfully")
+
+        // Force immediate UI update by calling refreshMenuItems after a small delay
+        Handler().postDelayed({
+            refreshMenuItems()
+        }, 100)
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

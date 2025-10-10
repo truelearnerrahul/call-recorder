@@ -66,6 +66,16 @@ class GoogleSignInHelper(
         }
     }
 
+    fun signOut(){
+        try {
+            googleSignInClient.signOut()
+            onSuccess("Google Sign-Out successful")
+        } catch (e: Exception){
+            Log.e("Google Sign Out", "Unexpected error: ${e.message}")
+            onError("Unexpected error: ${e.message}")
+        }
+    }
+
     private fun handleApiException(exception: ApiException) {
         val errorMessage = when (exception.statusCode) {
             CommonStatusCodes.INTERNAL_ERROR -> "Internal error, please try again"

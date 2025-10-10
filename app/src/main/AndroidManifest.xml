@@ -224,6 +224,13 @@
             android:parentActivityName=".activities.MainActivity"
             android:theme="@style/AppTheme" />
 
+        <activity
+            android:name=".activities.Top10Activity"
+            android:exported="false"
+            android:label="@string/top_10_frequent_calls"
+            android:parentActivityName=".activities.MainActivity"
+            android:theme="@style/AppTheme" />
+
         <service
             android:name=".services.CallService"
             android:enabled="true"

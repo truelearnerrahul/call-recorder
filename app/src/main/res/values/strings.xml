@@ -254,5 +254,6 @@
     <string name="join_us_today">Join us today</string>
     <string name="sign_in_with_google">Continue with Google</string>
     <string name="sign_up_with_google">Sign up with Google</string>
+    <string name="logout">Logout</string>
 
 </resources>

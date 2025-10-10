@@ -59,4 +59,9 @@
         android:icon="@drawable/ic_play_vector"
         android:title="@string/login"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/logout"
+        android:icon="@drawable/ic_call_end"
+        android:title="@string/logout"
+        app:showAsAction="never" />
 </menu>

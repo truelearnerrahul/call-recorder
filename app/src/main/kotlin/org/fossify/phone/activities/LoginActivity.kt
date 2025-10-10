@@ -16,6 +16,7 @@ import org.fossify.commons.extensions.*
 import org.fossify.commons.helpers.NavigationIcon
 import org.fossify.phone.R
 import org.fossify.phone.databinding.ActivityLoginBinding
+import org.fossify.phone.helpers.AuthHelper
 import org.fossify.phone.helpers.GoogleSignInHelper
 import org.fossify.phone.network.GoogleAuthRequest
 import org.fossify.phone.network.RetrofitClient
@@ -232,14 +233,13 @@ class LoginActivity : SimpleActivity() {
     }
 
     private fun saveAuthData(token: Token) {
-        val sharedPref = getSharedPreferences("auth", Context.MODE_PRIVATE)
-        with(sharedPref.edit()) {
-            putString("access_token", token.access_token)
-            putString("user_email", token.customer.email)
-            putString("user_name", token.customer.name)
-            putInt("user_id", token.customer.id)
-            apply()
-        }
+        AuthHelper.saveAuthData(
+            context = this,
+            token = token.access_token,
+            email = token.customer.email,
+            name = token.customer.name,
+            userId = token.customer.id
+        )
         Log.d("LoginActivity", "Auth data saved for user: ${token.customer.email}")
     }
 }
