@@ -27,7 +27,7 @@ fun Context.shareUri(file: File, mimeType: String, uploadToServer: Boolean = fal
             try {
                 val result = RetrofitClient.uploadAudioFile(this@shareUri, uri)
                 result.onSuccess { response ->
-                    Log.d("ShareUri", "File uploaded successfully: ${response.url}")
+                    Log.d("ShareUri", "File uploaded successfully: ${response.key}")
                     // You can show a toast or notification here
                 }.onFailure { exception ->
                     Log.e("ShareUri", "Failed to upload file", exception)

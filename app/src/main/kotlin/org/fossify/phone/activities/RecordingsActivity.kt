@@ -31,6 +31,7 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import java.util.Locale
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
@@ -39,7 +40,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.lifecycle.lifecycleScope
+import org.fossify.phone.helpers.AuthHelper
 import org.fossify.phone.network.RetrofitClient
+import org.fossify.phone.network.UploadResponse
+
 data class RecordingItem(
     var file: File,
     val duration: Long,
@@ -633,11 +637,31 @@ class RecordingsActivity : SimpleActivity() {
             try {
                 val result = RetrofitClient.uploadAudioFile(this@RecordingsActivity, Uri.fromFile(file))
                 withContext(Dispatchers.Main) {
-                    result.onSuccess {
+                    result.onSuccess { response ->
                         item.isUploaded = true
                         item.isUploading = false
+
+                        response.call_details_id.let { callDetailsId ->
+                            AuthHelper.saveCallDetailsId(this@RecordingsActivity, callDetailsId)
+                            Log.d("Upload", "Saved call_details_id: $callDetailsId")
+                            Toast.makeText(this@RecordingsActivity, "Saved call_details_id: $callDetailsId", Toast.LENGTH_SHORT).show()
+                        }
+
                         UploadedRecordingsManager.addUploadedPath(this@RecordingsActivity, file.absolutePath)
                         toast("Recording uploaded successfully!")
+
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            val analysisResult = RetrofitClient.triggerCallAnalysis(response)
+                            withContext(Dispatchers.Main) {
+                                analysisResult.onSuccess {
+                                    Toast.makeText(this@RecordingsActivity, "Call analysis completed!", Toast.LENGTH_LONG).show()
+                                    Log.d("Analysis", "Success: ${it.message}")
+                                }.onFailure { e ->
+                                    Toast.makeText(this@RecordingsActivity, "Analysis failed: ${e.message}", Toast.LENGTH_LONG).show()
+                                    Log.e("Analysis", "Failed", e)
+                                }
+                            }
+                        }
                     }.onFailure { e ->
                         item.isUploading = false
                         toast("Upload failed: ${e.message}")

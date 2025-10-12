@@ -304,6 +304,17 @@ class AnalyticsFragment(context: Context, attributeSet: AttributeSet) :
             }
         }
 
+        binding.tileNeverAttendedCalls.setOnClickListener {
+            if (context.hasPermission(PERMISSION_READ_CALL_LOG)) {
+                val intent = Intent(context, FilteredCallsActivity::class.java).apply {
+                    putExtra("filter_type", "rejected")
+                }
+                context.startActivity(intent)
+            } else {
+                requestCallLogPermission()
+            }
+        }
+
         binding.cardTop10Frequent.setOnClickListener {
             if (context.hasPermission(PERMISSION_READ_CALL_LOG)) {
                 val intent = Intent(context, Top10Activity::class.java)

@@ -1,7 +1,9 @@
 package org.fossify.phone.network
 
 import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.json.Json
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.Field
@@ -41,9 +43,10 @@ data class GoogleAuthRequest(
 
 interface ApiService {
     @Multipart
-    @POST("upload-audio")
+    @POST("api/v1/call_analysis/upload-audio")
     suspend fun uploadAudio(
-        @Part file: MultipartBody.Part
+        @Part file: MultipartBody.Part,
+        @Part("customer_id") customerId: RequestBody
     ): Response<UploadResponse>
 
     @FormUrlEncoded
@@ -62,9 +65,52 @@ interface ApiService {
     suspend fun googleAuth(
         @Body googleAuthRequest: GoogleAuthRequest
     ): Response<Token>
+
+    @POST("api/v1/call_analysis/do_analysis")
+    suspend fun doCallAnalysis(
+        @Body request: CallAnalysisRequest
+    ): Response<CallAnalysisResponse>
 }
 
 data class UploadResponse(
+    val status: Boolean,
+    val message: String,
     val filename: String,
-    val url: String
+    val key: String,
+    val customer_id: Int,
+    val call_details_id: Int
 )
+
+data class CallDetails(
+    val id: Int,
+    val call_metadata: Any?,
+    val transcribe_detail: Any?,
+    val sentiment_detail: Any?,
+    val story: Any?,
+    val final_output: Any?,
+    val participants_name: Any?,
+    val created_date: String?,
+    val created_by: Int?,
+    val s3_path: String?,
+    val filename: String?,
+    val knowledge_filename: String?,
+    val service_name: String?
+)
+
+data class CallAnalysisRequest(
+    val fileName: String,
+    val callDetailsId: Int
+)
+
+data class CallAnalysisResponse(
+    val status: String,
+    val message: String,
+    val data: CallAnalysisData
+)
+
+data class CallAnalysisData(
+    val transcribe: Any,
+    val sentiment: Any,
+    val response: Any,
+)
+

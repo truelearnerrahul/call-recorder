@@ -144,7 +144,7 @@
     <string name="total_rejected">Total rejected/missed</string>
     <string name="missed_calls">Missed calls</string>
     <string name="rejected_calls">Rejected calls</string>
-    <string name="never_answered_calls">Never answered calls</string>
+    <string name="never_attended_calls">Never attended calls</string>
     <string name="unique_calls">Unique calls</string>
     <string name="duration_format">%1$dh %2$dm %3$ds</string>
     <string name="duration_min_sec_format">%1$dm %2$ds</string>

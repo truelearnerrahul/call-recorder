@@ -9,6 +9,7 @@ object AuthHelper {
     private const val KEY_USER_EMAIL = "user_email"
     private const val KEY_USER_NAME = "user_name"
     private const val KEY_USER_ID = "user_id"
+    private const val KEY_CALL_DETAILS_ID = "call_details_id"
 
     /**
      * Check if user is authenticated
@@ -49,6 +50,22 @@ object AuthHelper {
     fun getUserId(context: Context): Int {
         val sharedPref = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
         return sharedPref.getInt(KEY_USER_ID, -1)
+    }
+
+    /**
+     * Save Call Details Id
+     */
+    fun saveCallDetailsId(context: Context, callDetailsId: Int) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putInt(KEY_CALL_DETAILS_ID, callDetailsId).apply()
+    }
+
+    /**
+     * Get Call Details Id
+     */
+    fun getCallDetailsId(context: Context): Int {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        return prefs.getInt(KEY_CALL_DETAILS_ID, -1)
     }
 
     /**

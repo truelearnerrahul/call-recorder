@@ -3,11 +3,14 @@ package org.fossify.phone.network
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.logging.HttpLoggingInterceptor
+import org.fossify.phone.helpers.AuthHelper
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
@@ -31,9 +34,9 @@ object RetrofitClient {
 
             val client = OkHttpClient.Builder()
                 .addInterceptor(loggingInterceptor)
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS)
+                .connectTimeout(5, TimeUnit.MINUTES)
+                .readTimeout(5, TimeUnit.MINUTES)
+                .writeTimeout(5, TimeUnit.MINUTES)
                 .build()
 
             val retrofit = Retrofit.Builder()
@@ -50,6 +53,13 @@ object RetrofitClient {
     suspend fun uploadAudioFile(context: Context, uri: Uri): Result<UploadResponse> {
         var tempFile: File? = null
         return try {
+            val customerId = AuthHelper.getUserId(context)
+            if (customerId == -1) {
+                Log.e("Upload", "Customer ID not found. Please login again.")
+                Toast.makeText(context, "Customer ID not found. Please login again.", Toast.LENGTH_SHORT).show()
+                return Result.failure(Exception("Upload failed: Customer ID not found. Please login again."))
+            }
+
             // Create a temporary file from the URI
             tempFile = File(context.cacheDir, "temp_audio_${System.currentTimeMillis()}")
             context.contentResolver.openInputStream(uri)?.use { input ->
@@ -65,9 +75,10 @@ object RetrofitClient {
             // Create request body
             val requestFile = tempFile.asRequestBody(mimeType.toMediaTypeOrNull())
             val body = MultipartBody.Part.createFormData("file", tempFile.name, requestFile)
+            val customerIdBody = customerId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
 
             // Make the API call
-            val response = getClient().uploadAudio(body)
+            val response = getClient().uploadAudio(body, customerIdBody)
 
             if (response.isSuccessful) {
                 response.body()?.let {
@@ -86,4 +97,35 @@ object RetrofitClient {
             tempFile?.delete()
         }
     }
+
+    suspend fun triggerCallAnalysis(
+        uploadResponse: UploadResponse,
+    ): Result<CallAnalysisResponse> {
+        return try {
+            val callDetailsId = uploadResponse.call_details_id
+            val fileKey = uploadResponse.key
+
+            if (callDetailsId == null) {
+                return Result.failure(Exception("callDetailsId not found in upload response"))
+            }
+
+            val request = CallAnalysisRequest(
+                fileName = fileKey,
+                callDetailsId = callDetailsId
+            )
+
+            val response = getClient().doCallAnalysis(request)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                val errorMsg = response.errorBody()?.string()
+                Log.e("RetrofitClient", "Call analysis failed: ${response.code()} - $errorMsg")
+                Result.failure(Exception("Call analysis failed: ${response.code()} - $errorMsg"))
+            }
+        } catch (e: Exception) {
+            Log.e("RetrofitClient", "Error triggering call analysis", e)
+            Result.failure(e)
+        }
+    }
+
 }
